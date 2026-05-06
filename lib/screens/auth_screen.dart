@@ -92,7 +92,7 @@ class _AuthScreenState extends State<AuthScreen> {
             const Icon(Icons.qr_code_2, size: 64, color: Colors.blue),
             const SizedBox(height: 24),
             Text(
-              'QR kódy na platby',
+              'QRkni',
               style: Theme.of(context).textTheme.headlineMedium,
               textAlign: TextAlign.center,
             ),

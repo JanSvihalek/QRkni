@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/payment_item.dart';
 import '../models/payment_profile.dart';
+import '../models/payment_transaction.dart';
 import '../services/auth_service.dart';
 import '../services/firestore_service.dart';
 import 'items_screen.dart';
 import 'profiles_screen.dart';
 import 'qr_display_screen.dart';
+import 'transactions_screen.dart';
 
 // Položka v košíku
 class _CartEntry {
@@ -376,6 +378,16 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
               IconButton(
+                icon: const Icon(Icons.receipt_long_outlined),
+                tooltip: 'Historie plateb',
+                onPressed: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (_) =>
+                          TransactionsScreen(userId: widget.userId)),
+                ),
+              ),
+              IconButton(
                 icon: const Icon(Icons.tune),
                 tooltip: 'Profily',
                 onPressed: () => Navigator.push(
@@ -526,15 +538,29 @@ class _HomeScreenState extends State<HomeScreen> {
                       const SizedBox(height: 8),
                       FilledButton(
                         onPressed: selected != null && amount != null
-                            ? () => Navigator.push(
+                            ? () async {
+                                final paid = await Navigator.push<bool>(
                                   context,
                                   MaterialPageRoute(
                                     builder: (_) => QrDisplayScreen(
+                                      userId: widget.userId,
                                       profile: selected!,
                                       amount: amount,
+                                      items: _cart
+                                          .map((e) => TransactionItem(
+                                                name: e.item.name,
+                                                price: e.item.price,
+                                                quantity: e.quantity,
+                                              ))
+                                          .toList(),
                                     ),
                                   ),
-                                )
+                                );
+                                if (paid == true) {
+                                  _clearCart();
+                                  setState(() => _input = '0');
+                                }
+                              }
                             : null,
                         style: FilledButton.styleFrom(
                           minimumSize: const Size(double.infinity, 56),

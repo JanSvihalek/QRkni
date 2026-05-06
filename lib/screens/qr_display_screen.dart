@@ -1,22 +1,61 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import '../models/payment_profile.dart';
+import '../models/payment_transaction.dart';
+import '../services/firestore_service.dart';
 
-class QrDisplayScreen extends StatelessWidget {
+class QrDisplayScreen extends StatefulWidget {
+  final String userId;
   final PaymentProfile profile;
   final double amount;
+  final List<TransactionItem> items;
 
   const QrDisplayScreen({
     super.key,
+    required this.userId,
     required this.profile,
     required this.amount,
+    this.items = const [],
   });
 
-  String get _qrData => profile.toSpaydString(amount: amount);
+  @override
+  State<QrDisplayScreen> createState() => _QrDisplayScreenState();
+}
 
-  String get _formattedAmount {
-    final s = amount.toStringAsFixed(2).replaceAll('.', ',');
-    return '$s Kč';
+class _QrDisplayScreenState extends State<QrDisplayScreen> {
+  bool _saving = false;
+
+  String get _qrData => widget.profile.toSpaydString(amount: widget.amount);
+
+  String get _formattedAmount =>
+      '${widget.amount.toStringAsFixed(2).replaceAll('.', ',')} Kč';
+
+  Future<void> _markPaid() async {
+    setState(() => _saving = true);
+    try {
+      // Zajistí platný auth token před zápisem (důležité na webu)
+      await FirebaseAuth.instance.currentUser?.getIdToken(true);
+      await FirestoreService().addTransaction(
+        widget.userId,
+        PaymentTransaction(
+          profileId: widget.profile.id ?? '',
+          profileName: widget.profile.name,
+          amount: widget.amount,
+          items: widget.items,
+          createdAt: DateTime.now(),
+        ),
+      );
+      if (mounted) Navigator.pop(context, true);
+    } catch (e) {
+      debugPrint('addTransaction error: $e');
+      if (mounted) {
+        setState(() => _saving = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Chyba: $e')),
+        );
+      }
+    }
   }
 
   @override
@@ -28,10 +67,10 @@ class QrDisplayScreen extends StatelessWidget {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.close),
-          onPressed: () => Navigator.pop(context),
+          onPressed: () => Navigator.pop(context, false),
         ),
         title: Text(
-          profile.name,
+          widget.profile.name,
           style: const TextStyle(fontSize: 16, color: Colors.black87),
         ),
         centerTitle: true,
@@ -43,12 +82,12 @@ class QrDisplayScreen extends StatelessWidget {
               padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
               child: Text(
                 'Otevřete svou bankovní aplikaci a naskenujte QR kód',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
                 textAlign: TextAlign.center,
               ),
             ),
 
-            // ── QR kód — zabere většinu obrazovky ──────────────────────────
+            // ── QR kód ────────────────────────────────────────────────────
             Expanded(
               child: LayoutBuilder(
                 builder: (context, constraints) {
@@ -81,13 +120,14 @@ class QrDisplayScreen extends StatelessWidget {
               ),
             ),
 
-            // ── Částka a info dole ─────────────────────────────────────────
+            // ── Částka, info a tlačítko ───────────────────────────────────
             Container(
               width: double.infinity,
-              padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 32),
+              padding: const EdgeInsets.fromLTRB(32, 16, 32, 24),
               decoration: BoxDecoration(
                 color: Colors.white,
-                border: Border(top: BorderSide(color: Colors.grey.shade100, width: 1)),
+                border:
+                    Border(top: BorderSide(color: Colors.grey.shade100, width: 1)),
               ),
               child: Column(
                 children: [
@@ -101,16 +141,35 @@ class QrDisplayScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 6),
                   Text(
-                    _formatIban(profile.iban),
+                    _formatIban(widget.profile.iban),
                     style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
                   ),
-                  if (profile.recipientName != null) ...[
+                  if (widget.profile.recipientName != null) ...[
                     const SizedBox(height: 2),
                     Text(
-                      profile.recipientName!,
+                      widget.profile.recipientName!,
                       style: TextStyle(fontSize: 13, color: Colors.grey.shade500),
                     ),
                   ],
+                  const SizedBox(height: 16),
+                  FilledButton.icon(
+                    onPressed: _saving ? null : _markPaid,
+                    icon: _saving
+                        ? const SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(
+                                strokeWidth: 2, color: Colors.white),
+                          )
+                        : const Icon(Icons.check_circle_outline),
+                    label: Text(_saving ? 'Ukládám…' : 'Hotovo/Zaplaceno'),
+                    style: FilledButton.styleFrom(
+                      minimumSize: const Size(double.infinity, 52),
+                      backgroundColor: Colors.green.shade600,
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14)),
+                    ),
+                  ),
                 ],
               ),
             ),

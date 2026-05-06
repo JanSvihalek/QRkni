@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/payment_profile.dart';
 import '../models/payment_item.dart';
+import '../models/payment_transaction.dart';
 
 class FirestoreService {
   final FirebaseFirestore _db = FirebaseFirestore.instanceFor(
@@ -72,5 +73,21 @@ class FirestoreService {
 
   Future<void> deleteItem(String uid, String itemId) async {
     await _itemsRef(uid).doc(itemId).delete();
+  }
+
+  // ── Transakce (historie plateb) ──────────────────────────────────────────
+
+  CollectionReference<Map<String, dynamic>> _transactionsRef(String uid) =>
+      _db.collection('users').doc(uid).collection('transactions');
+
+  Stream<List<PaymentTransaction>> transactionsStream(String uid) {
+    return _transactionsRef(uid)
+        .orderBy('createdAt', descending: true)
+        .snapshots()
+        .map((snap) => snap.docs.map(PaymentTransaction.fromFirestore).toList());
+  }
+
+  Future<void> addTransaction(String uid, PaymentTransaction transaction) async {
+    await _transactionsRef(uid).add(transaction.toFirestore());
   }
 }
