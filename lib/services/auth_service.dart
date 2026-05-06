@@ -1,34 +1,43 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'firestore_service.dart';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final _firestoreService = FirestoreService();
 
-  // Stream pro sledování stavu přihlášení
   Stream<User?> get authStateChanges => _auth.authStateChanges();
 
-  // Aktuální uživatel
   User? get currentUser => _auth.currentUser;
 
-  // Registrace
   Future<UserCredential> signUp({
     required String email,
     required String password,
   }) async {
-    return await _auth.createUserWithEmailAndPassword(
+    final credential = await _auth.createUserWithEmailAndPassword(
       email: email,
       password: password,
     );
+    await _firestoreService.saveUser(
+      uid: credential.user!.uid,
+      email: email,
+      isNewUser: true,
+    );
+    return credential;
   }
 
-  // Přihlášení
   Future<UserCredential> signIn({
     required String email,
     required String password,
   }) async {
-    return await _auth.signInWithEmailAndPassword(
+    final credential = await _auth.signInWithEmailAndPassword(
       email: email,
       password: password,
     );
+    await _firestoreService.saveUser(
+      uid: credential.user!.uid,
+      email: email,
+    );
+    return credential;
   }
 
   // Odhlášení

@@ -39,6 +39,15 @@ class QrDisplayScreen extends StatelessWidget {
       body: SafeArea(
         child: Column(
           children: [
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              child: Text(
+                'Otevřete svou bankovní aplikaci a naskenujte QR kód',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                textAlign: TextAlign.center,
+              ),
+            ),
+
             // ── QR kód — zabere většinu obrazovky ──────────────────────────
             Expanded(
               child: LayoutBuilder(
