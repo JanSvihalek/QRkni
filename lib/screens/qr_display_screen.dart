@@ -1,4 +1,3 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import '../models/payment_profile.dart';
@@ -34,8 +33,6 @@ class _QrDisplayScreenState extends State<QrDisplayScreen> {
   Future<void> _markPaid() async {
     setState(() => _saving = true);
     try {
-      // Zajistí platný auth token před zápisem (důležité na webu)
-      await FirebaseAuth.instance.currentUser?.getIdToken(true);
       await FirestoreService().addTransaction(
         widget.userId,
         PaymentTransaction(
@@ -82,7 +79,7 @@ class _QrDisplayScreenState extends State<QrDisplayScreen> {
               padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
               child: Text(
                 'Otevřete svou bankovní aplikaci a naskenujte QR kód',
-                style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
+                style: TextStyle(fontSize: 28, fontWeight: FontWeight.w900, color: Colors.black),
                 textAlign: TextAlign.center,
               ),
             ),
@@ -139,13 +136,24 @@ class _QrDisplayScreenState extends State<QrDisplayScreen> {
                       letterSpacing: -1,
                     ),
                   ),
-                  const SizedBox(height: 6),
-                  Text(
-                    _formatIban(widget.profile.iban),
-                    style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
+                  const SizedBox(height: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade100,
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Text(
+                      _formatIban(widget.profile.iban),
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: Colors.grey.shade700,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
                   ),
                   if (widget.profile.recipientName != null) ...[
-                    const SizedBox(height: 2),
+                    const SizedBox(height: 4),
                     Text(
                       widget.profile.recipientName!,
                       style: TextStyle(fontSize: 13, color: Colors.grey.shade500),
