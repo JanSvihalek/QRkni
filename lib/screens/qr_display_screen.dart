@@ -27,18 +27,20 @@ class QrDisplayScreen extends StatefulWidget {
 
 class _QrDisplayScreenState extends State<QrDisplayScreen> {
   bool _saving = false;
+  bool _flipQr = false;
 
   @override
   void initState() {
     super.initState();
-    if (!kIsWeb) _applyBrightness();
+    _loadSettings();
   }
 
-  Future<void> _applyBrightness() async {
+  Future<void> _loadSettings() async {
     final prefs = await SharedPreferences.getInstance();
-    if (prefs.getBool('auto_brightness') ?? true) {
+    if (!kIsWeb && (prefs.getBool('auto_brightness') ?? true)) {
       await ScreenBrightness().setScreenBrightness(1.0);
     }
+    if (mounted) setState(() => _flipQr = prefs.getBool('flip_qr') ?? false);
   }
 
   @override
@@ -95,7 +97,9 @@ class _QrDisplayScreenState extends State<QrDisplayScreen> {
         centerTitle: true,
       ),
       body: SafeArea(
-        child: Column(
+        child: RotatedBox(
+          quarterTurns: _flipQr ? 2 : 0,
+          child: Column(
           children: [
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
@@ -218,6 +222,7 @@ class _QrDisplayScreenState extends State<QrDisplayScreen> {
               ),
             ),
           ],
+        ),
         ),
       ),
     );

@@ -17,13 +17,18 @@ class SettingsScreen extends StatefulWidget {
 
 class _SettingsScreenState extends State<SettingsScreen> {
   static const _brightnessKey = 'auto_brightness';
+  static const _flipKey = 'flip_qr';
   bool _autoBrightness = true;
+  bool _flipQr = false;
 
   @override
   void initState() {
     super.initState();
     SharedPreferences.getInstance().then((prefs) {
-      setState(() => _autoBrightness = prefs.getBool(_brightnessKey) ?? true);
+      setState(() {
+        _autoBrightness = prefs.getBool(_brightnessKey) ?? true;
+        _flipQr = prefs.getBool(_flipKey) ?? false;
+      });
     });
   }
 
@@ -31,6 +36,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_brightnessKey, value);
     setState(() => _autoBrightness = value);
+  }
+
+  Future<void> _setFlipQr(bool value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_flipKey, value);
+    setState(() => _flipQr = value);
   }
 
   @override
@@ -155,6 +166,25 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
               value: _autoBrightness,
               onChanged: _setAutoBrightness,
+            ),
+          ),
+          Card(
+            margin: const EdgeInsets.only(bottom: 8),
+            child: SwitchListTile(
+              secondary: Icon(
+                Icons.screen_rotation_outlined,
+                color: Theme.of(context).colorScheme.primary,
+              ),
+              title: const Text(
+                'Otočit QR kód',
+                style: TextStyle(fontWeight: FontWeight.w500),
+              ),
+              subtitle: const Text(
+                'Zobrazí QR kód vzhůru nohama — zákazník ho vidí správně',
+                style: TextStyle(fontSize: 12),
+              ),
+              value: _flipQr,
+              onChanged: _setFlipQr,
             ),
           ),
           _SettingsTile(
