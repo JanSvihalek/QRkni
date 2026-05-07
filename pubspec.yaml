@@ -37,6 +37,8 @@ dependencies:
   cloud_firestore: ^5.4.3
   qr_flutter: ^4.1.0
   provider: ^6.1.2
+  screen_brightness: ^0.2.2+1
+  shared_preferences: ^2.3.2
 
 dev_dependencies:
   flutter_test:

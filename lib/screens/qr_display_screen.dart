@@ -1,5 +1,8 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+import 'package:screen_brightness/screen_brightness.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../models/payment_profile.dart';
 import '../models/payment_transaction.dart';
 import '../services/firestore_service.dart';
@@ -24,6 +27,25 @@ class QrDisplayScreen extends StatefulWidget {
 
 class _QrDisplayScreenState extends State<QrDisplayScreen> {
   bool _saving = false;
+
+  @override
+  void initState() {
+    super.initState();
+    if (!kIsWeb) _applyBrightness();
+  }
+
+  Future<void> _applyBrightness() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (prefs.getBool('auto_brightness') ?? true) {
+      await ScreenBrightness().setScreenBrightness(1.0);
+    }
+  }
+
+  @override
+  void dispose() {
+    if (!kIsWeb) ScreenBrightness().resetScreenBrightness();
+    super.dispose();
+  }
 
   String get _qrData => widget.profile.toSpaydString(amount: widget.amount);
 

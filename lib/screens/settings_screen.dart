@@ -1,14 +1,37 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../services/auth_service.dart';
 import '../services/firestore_service.dart';
 import 'items_screen.dart';
 import 'profiles_screen.dart';
 import 'transactions_screen.dart';
 
-class SettingsScreen extends StatelessWidget {
+class SettingsScreen extends StatefulWidget {
   final String userId;
   const SettingsScreen({super.key, required this.userId});
+
+  @override
+  State<SettingsScreen> createState() => _SettingsScreenState();
+}
+
+class _SettingsScreenState extends State<SettingsScreen> {
+  static const _brightnessKey = 'auto_brightness';
+  bool _autoBrightness = true;
+
+  @override
+  void initState() {
+    super.initState();
+    SharedPreferences.getInstance().then((prefs) {
+      setState(() => _autoBrightness = prefs.getBool(_brightnessKey) ?? true);
+    });
+  }
+
+  Future<void> _setAutoBrightness(bool value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_brightnessKey, value);
+    setState(() => _autoBrightness = value);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -26,7 +49,7 @@ class SettingsScreen extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          // ── Uživatel ────────────────────────────────────────────────────
+          // ── Účet ────────────────────────────────────────────────────────
           _SectionHeader('Účet'),
           Card(
             child: Padding(
@@ -51,13 +74,13 @@ class SettingsScreen extends StatelessWidget {
                               fontWeight: FontWeight.w600, fontSize: 15),
                         ),
                         FutureBuilder<Map<String, dynamic>?>(
-                          future: FirestoreService().getUserData(userId),
+                          future: FirestoreService().getUserData(widget.userId),
                           builder: (context, snapshot) {
-                            final createdAt = snapshot.data?['createdAt'] as DateTime?;
+                            final createdAt =
+                                snapshot.data?['createdAt'] as DateTime?;
                             if (createdAt == null) return const SizedBox.shrink();
-                            final date = createdAt;
                             return Text(
-                              'Člen od ${date.day}. ${date.month}. ${date.year}',
+                              'Člen od ${createdAt.day}. ${createdAt.month}. ${createdAt.year}',
                               style: TextStyle(
                                   fontSize: 12, color: Colors.grey.shade600),
                             );
@@ -81,7 +104,8 @@ class SettingsScreen extends StatelessWidget {
             subtitle: 'Správa IBAN, BIC a platebních údajů',
             onTap: () => Navigator.push(
               context,
-              MaterialPageRoute(builder: (_) => ProfilesScreen(userId: userId)),
+              MaterialPageRoute(
+                  builder: (_) => ProfilesScreen(userId: widget.userId)),
             ),
           ),
           _SettingsTile(
@@ -90,7 +114,8 @@ class SettingsScreen extends StatelessWidget {
             subtitle: 'Pivo, klobása a další přednastavené ceny',
             onTap: () => Navigator.push(
               context,
-              MaterialPageRoute(builder: (_) => ItemsScreen(userId: userId)),
+              MaterialPageRoute(
+                  builder: (_) => ItemsScreen(userId: widget.userId)),
             ),
           ),
 
@@ -105,7 +130,7 @@ class SettingsScreen extends StatelessWidget {
             onTap: () => Navigator.push(
               context,
               MaterialPageRoute(
-                  builder: (_) => TransactionsScreen(userId: userId)),
+                  builder: (_) => TransactionsScreen(userId: widget.userId)),
             ),
           ),
 
@@ -113,6 +138,25 @@ class SettingsScreen extends StatelessWidget {
 
           // ── Aplikace ────────────────────────────────────────────────────
           _SectionHeader('Aplikace'),
+          Card(
+            margin: const EdgeInsets.only(bottom: 8),
+            child: SwitchListTile(
+              secondary: Icon(
+                Icons.brightness_high_outlined,
+                color: Theme.of(context).colorScheme.primary,
+              ),
+              title: const Text(
+                'Maximální jas při QR kódu',
+                style: TextStyle(fontWeight: FontWeight.w500),
+              ),
+              subtitle: const Text(
+                'Při zobrazení QR kódu zvýší jas obrazovky',
+                style: TextStyle(fontSize: 12),
+              ),
+              value: _autoBrightness,
+              onChanged: _setAutoBrightness,
+            ),
+          ),
           _SettingsTile(
             icon: Icons.logout,
             title: 'Odhlásit se',
@@ -186,13 +230,11 @@ class _SettingsTile extends StatelessWidget {
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
       child: ListTile(
-        leading: Icon(icon, color: titleColor ?? Theme.of(context).colorScheme.primary),
+        leading:
+            Icon(icon, color: titleColor ?? Theme.of(context).colorScheme.primary),
         title: Text(
           title,
-          style: TextStyle(
-            fontWeight: FontWeight.w500,
-            color: titleColor,
-          ),
+          style: TextStyle(fontWeight: FontWeight.w500, color: titleColor),
         ),
         subtitle: subtitle != null
             ? Text(subtitle!, style: const TextStyle(fontSize: 12))

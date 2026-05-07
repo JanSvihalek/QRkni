@@ -26,6 +26,7 @@ class MyApp extends StatelessWidget {
       child: MaterialApp(
         title: 'QR kódy na platby',
         debugShowCheckedModeBanner: false,
+        themeMode: ThemeMode.light,
         theme: ThemeData(
           colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
           useMaterial3: true,
