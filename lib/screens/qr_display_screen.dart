@@ -48,9 +48,9 @@ class _QrDisplayScreenState extends State<QrDisplayScreen> {
       debugPrint('addTransaction error: $e');
       if (mounted) {
         setState(() => _saving = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Chyba: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Chyba: $e')));
       }
     }
   }
@@ -79,7 +79,11 @@ class _QrDisplayScreenState extends State<QrDisplayScreen> {
               padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
               child: Text(
                 'Otevřete svou bankovní aplikaci a naskenujte QR kód',
-                style: TextStyle(fontSize: 28, fontWeight: FontWeight.w900, color: Colors.black),
+                style: TextStyle(
+                  fontSize: 25,
+                  fontWeight: FontWeight.w900,
+                  color: Colors.black,
+                ),
                 textAlign: TextAlign.center,
               ),
             ),
@@ -123,8 +127,9 @@ class _QrDisplayScreenState extends State<QrDisplayScreen> {
               padding: const EdgeInsets.fromLTRB(32, 16, 32, 24),
               decoration: BoxDecoration(
                 color: Colors.white,
-                border:
-                    Border(top: BorderSide(color: Colors.grey.shade100, width: 1)),
+                border: Border(
+                  top: BorderSide(color: Colors.grey.shade100, width: 1),
+                ),
               ),
               child: Column(
                 children: [
@@ -138,7 +143,10 @@ class _QrDisplayScreenState extends State<QrDisplayScreen> {
                   ),
                   const SizedBox(height: 8),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
                       color: Colors.grey.shade100,
                       borderRadius: BorderRadius.circular(6),
@@ -156,7 +164,10 @@ class _QrDisplayScreenState extends State<QrDisplayScreen> {
                     const SizedBox(height: 4),
                     Text(
                       widget.profile.recipientName!,
-                      style: TextStyle(fontSize: 13, color: Colors.grey.shade500),
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: Colors.grey.shade500,
+                      ),
                     ),
                   ],
                   const SizedBox(height: 16),
@@ -167,7 +178,9 @@ class _QrDisplayScreenState extends State<QrDisplayScreen> {
                             width: 18,
                             height: 18,
                             child: CircularProgressIndicator(
-                                strokeWidth: 2, color: Colors.white),
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
                           )
                         : const Icon(Icons.check_circle_outline),
                     label: Text(_saving ? 'Ukládám…' : 'Hotovo/Zaplaceno'),
@@ -175,7 +188,8 @@ class _QrDisplayScreenState extends State<QrDisplayScreen> {
                       minimumSize: const Size(double.infinity, 52),
                       backgroundColor: Colors.green.shade600,
                       shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14)),
+                        borderRadius: BorderRadius.circular(14),
+                      ),
                     ),
                   ),
                 ],

@@ -7,7 +7,7 @@ import 'models/payment_profile.dart';
 import 'services/auth_service.dart';
 import 'services/firestore_service.dart';
 import 'screens/auth_screen.dart';
-import 'screens/home_screen.dart';
+import 'screens/main_screen.dart';
 import 'screens/onboarding_screen.dart';
 
 void main() async {
@@ -77,7 +77,7 @@ class _ProfileChecker extends StatelessWidget {
         if (profiles.isEmpty) {
           return OnboardingScreen(userId: userId);
         }
-        return HomeScreen(userId: userId);
+        return MainScreen(userId: userId);
       },
     );
   }

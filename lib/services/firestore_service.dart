@@ -17,6 +17,17 @@ class FirestoreService {
 
   /// Vytvoří nebo aktualizuje dokument uživatele.
   /// Bezpečné volat při registraci i přihlášení (merge: true).
+  Future<Map<String, dynamic>?> getUserData(String uid) async {
+    final doc = await _userRef(uid).get();
+    if (!doc.exists) return null;
+    final data = doc.data()!;
+    return {
+      ...data,
+      if (data['createdAt'] != null)
+        'createdAt': (data['createdAt'] as Timestamp).toDate(),
+    };
+  }
+
   Future<void> saveUser({
     required String uid,
     required String email,

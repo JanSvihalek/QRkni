@@ -1,14 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import '../models/payment_item.dart';
 import '../models/payment_profile.dart';
 import '../models/payment_transaction.dart';
-import '../services/auth_service.dart';
 import '../services/firestore_service.dart';
 import 'items_screen.dart';
 import 'profiles_screen.dart';
 import 'qr_display_screen.dart';
-import 'transactions_screen.dart';
 
 // Položka v košíku
 class _CartEntry {
@@ -367,46 +364,12 @@ class _HomeScreenState extends State<HomeScreen> {
                   )
                 : const Text('QR platby'),
             centerTitle: true,
-            actions: [
-              IconButton(
-                icon: const Icon(Icons.fastfood_outlined),
-                tooltip: 'Katalog položek',
-                onPressed: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (_) => ItemsScreen(userId: widget.userId)),
-                ),
-              ),
-              IconButton(
-                icon: const Icon(Icons.receipt_long_outlined),
-                tooltip: 'Historie plateb',
-                onPressed: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (_) =>
-                          TransactionsScreen(userId: widget.userId)),
-                ),
-              ),
-              IconButton(
-                icon: const Icon(Icons.tune),
-                tooltip: 'Profily',
-                onPressed: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (_) => ProfilesScreen(userId: widget.userId)),
-                ),
-              ),
-              IconButton(
-                icon: const Icon(Icons.logout),
-                onPressed: () => context.read<AuthService>().signOut(),
-              ),
-            ],
+            actions: const [],
           ),
           body: Column(
             children: [
               // ── Displej ──────────────────────────────────────────────────
               Expanded(
-                flex: 2,
                 child: Center(
                   child: FittedBox(
                     child: Padding(
@@ -493,13 +456,12 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
 
               // ── Klávesnice nebo placeholder ───────────────────────────────
-              Expanded(
-                flex: 3,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24),
-                  child: Column(
-                    children: [
-                      const SizedBox(height: 8),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const SizedBox(height: 8),
                       if (!_hasCart) ...[
                         _NumpadRow(labels: ['1', '2', '3'], onTap: _onDigit),
                         _NumpadRow(labels: ['4', '5', '6'], onTap: _onDigit),
@@ -521,20 +483,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                           ],
                         ),
-                      ] else
-                        const Spacer(),
-                      const SizedBox(height: 8),
-                      // Tlačítko + položka
-                      OutlinedButton.icon(
-                        onPressed: () => _showItemsPicker(context),
-                        icon: const Icon(Icons.add),
-                        label: const Text('Přidat položku'),
-                        style: OutlinedButton.styleFrom(
-                          minimumSize: const Size(double.infinity, 44),
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12)),
-                        ),
-                      ),
+                      ],
                       const SizedBox(height: 8),
                       FilledButton(
                         onPressed: selected != null && amount != null
@@ -577,11 +526,21 @@ class _HomeScreenState extends State<HomeScreen> {
                           ],
                         ),
                       ),
+                      const SizedBox(height: 8),
+                      OutlinedButton.icon(
+                        onPressed: () => _showItemsPicker(context),
+                        icon: const Icon(Icons.add),
+                        label: const Text('Přidat položku'),
+                        style: OutlinedButton.styleFrom(
+                          minimumSize: const Size(double.infinity, 44),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12)),
+                        ),
+                      ),
                       const SizedBox(height: 16),
                     ],
                   ),
                 ),
-              ),
             ],
           ),
         );
