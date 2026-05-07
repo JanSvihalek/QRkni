@@ -8,7 +8,7 @@ workflows:
         distribution_type: ad_hoc
         bundle_identifier: com.jansvihalek.qrkni
       integrations:
-        app_store_connect: TORKIS
+        app_store_connect: QRkni
     scripts:
       - name: Set up code signing
         script: xcode-project use-profiles
