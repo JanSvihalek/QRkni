@@ -1,0 +1,30 @@
+workflows:
+  ios-adhoc:
+    name: iOS Ad Hoc
+    max_build_duration: 60
+    environment:
+      flutter: stable
+      ios_signing:
+        distribution_type: ad_hoc
+        bundle_identifier: com.jansvihalek.qrkni
+      integrations:
+        app_store_connect: TORKIS
+    scripts:
+      - name: Set up code signing
+        script: xcode-project use-profiles
+      - name: Flutter pub get
+        script: flutter pub get
+      - name: Build iOS (no codesign)
+        script: flutter build ios --release --no-codesign
+      - name: Build IPA
+        script: xcode-project build-ipa --workspace ios/Runner.xcworkspace --scheme Runner
+    artifacts:
+      - build/ios/ipa/*.ipa
+      - /tmp/xcodebuild_logs/*.log
+    publishing:
+      email:
+        recipients:
+          - jan.svihalek00@gmail.com
+        notify:
+          success: true
+          failure: true
