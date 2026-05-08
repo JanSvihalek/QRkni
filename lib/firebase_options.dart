@@ -11,9 +11,7 @@ class DefaultFirebaseOptions {
       case TargetPlatform.android:
         return android;
       case TargetPlatform.iOS:
-        throw UnsupportedError(
-          'iOS není nakonfigurován. Přidej iOS aplikaci ve Firebase Console a spusť flutterfire configure.',
-        );
+        return ios;
       default:
         throw UnsupportedError('Tato platforma není podporována.');
     }
@@ -35,5 +33,14 @@ class DefaultFirebaseOptions {
     messagingSenderId: '929846473056',
     projectId: 'qrkni-44ce9',
     storageBucket: 'qrkni-44ce9.firebasestorage.app',
+  );
+
+  static const FirebaseOptions ios = FirebaseOptions(
+    apiKey: 'AIzaSyCphxPc1B4HjgNpLzv7un1bDnh8V8xjPT0',
+    appId: '1:929846473056:ios:f83b27942d971b25e72e05',
+    messagingSenderId: '929846473056',
+    projectId: 'qrkni-44ce9',
+    storageBucket: 'qrkni-44ce9.firebasestorage.app',
+    iosBundleId: 'com.jansvihalek.qrkni',
   );
 }
