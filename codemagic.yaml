@@ -13,19 +13,28 @@ workflows:
     scripts:
       - name: Set up signing
         script: |
+          set -e
           keychain initialize
 
-          # Explicitly create distribution certificate with private key
+          echo "=== Generating private key ==="
+          openssl genrsa -out /tmp/codemagic_cert_key.pem 2048
+
+          echo "=== Creating distribution certificate ==="
           app-store-connect certificates create \
             --type IOS_DISTRIBUTION \
+            --certificate-key=@file:/tmp/codemagic_cert_key.pem \
             --save
 
-          # Fetch / create Ad Hoc provisioning profile (cert already exists)
+          echo "=== Fetching / creating Ad Hoc profile ==="
           app-store-connect fetch-signing-files "$BUNDLE_ID" \
             --type IOS_APP_ADHOC \
+            --certificate-key=@file:/tmp/codemagic_cert_key.pem \
             --create
 
+          echo "=== Adding certificates to keychain ==="
           keychain add-certificates
+
+          echo "=== Applying profiles to Xcode project ==="
           xcode-project use-profiles
       - name: Flutter pub get
         script: flutter pub get
