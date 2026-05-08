@@ -6,6 +6,9 @@ workflows:
       app_store_connect: CodeMagic
     environment:
       flutter: stable
+      ios_signing:
+        distribution_type: ad_hoc
+        bundle_identifier: com.jansvihalek.qrkni
       vars:
         BUNDLE_ID: "com.jansvihalek.qrkni"
         XCODE_WORKSPACE: "ios/Runner.xcworkspace"
@@ -13,38 +16,11 @@ workflows:
     scripts:
       - name: Set up signing
         script: |
-          set -e
           keychain initialize
-
-          echo "=== Generating private key ==="
-          openssl genrsa -out /tmp/codemagic_cert_key.pem 2048
-
-          echo "=== Revoking existing distribution certificates ==="
-          app-store-connect certificates list --type IOS_DISTRIBUTION --json \
-            | python3 -c "import json,sys;[print(c['id']) for c in json.load(sys.stdin)]" \
-            | while read cert_id; do
-                if [ -n "$cert_id" ]; then
-                  echo "Revoking $cert_id"
-                  app-store-connect certificates delete "$cert_id" --ignore-not-found || true
-                fi
-              done
-
-          echo "=== Creating distribution certificate ==="
-          app-store-connect certificates create \
-            --type IOS_DISTRIBUTION \
-            --certificate-key=@file:/tmp/codemagic_cert_key.pem \
-            --save
-
-          echo "=== Fetching / creating Ad Hoc profile ==="
+          keychain add-certificates
           app-store-connect fetch-signing-files "$BUNDLE_ID" \
             --type IOS_APP_ADHOC \
-            --certificate-key=@file:/tmp/codemagic_cert_key.pem \
             --create
-
-          echo "=== Adding certificates to keychain ==="
-          keychain add-certificates
-
-          echo "=== Applying profiles to Xcode project ==="
           xcode-project use-profiles
       - name: Flutter pub get
         script: flutter pub get
