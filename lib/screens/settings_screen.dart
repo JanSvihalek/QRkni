@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../services/auth_service.dart';
 import '../services/biometric_service.dart';
+import '../services/credential_storage.dart';
 import '../services/firestore_service.dart';
 import 'items_screen.dart';
 import 'profiles_screen.dart';
@@ -62,6 +63,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
       final ok = await BiometricService()
           .authenticate(reason: 'Potvrďte aktivaci biometriky');
       if (!ok) return;
+    } else {
+      await CredentialStorage().clear();
     }
     setState(() => _biometricEnabled = value);
     await _saveAll();

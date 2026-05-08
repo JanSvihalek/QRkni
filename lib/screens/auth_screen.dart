@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../services/auth_service.dart';
+import '../services/biometric_service.dart';
+import '../services/credential_storage.dart';
 
 class AuthScreen extends StatefulWidget {
   const AuthScreen({super.key});
@@ -13,9 +15,69 @@ class AuthScreen extends StatefulWidget {
 class _AuthScreenState extends State<AuthScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _credentials = CredentialStorage();
+  final _biometric = BiometricService();
   bool _isLogin = true;
   bool _isLoading = false;
+  bool _hasStoredCredentials = false;
+  bool _biometricAvailable = false;
   String? _errorMessage;
+
+  @override
+  void initState() {
+    super.initState();
+    _initBiometric();
+  }
+
+  Future<void> _initBiometric() async {
+    final available = await _biometric.isAvailable();
+    final hasCreds = await _credentials.hasCredentials();
+    if (!mounted) return;
+    setState(() {
+      _biometricAvailable = available;
+      _hasStoredCredentials = hasCreds;
+    });
+    if (available && hasCreds && _isLogin) {
+      _tryBiometricLogin();
+    }
+  }
+
+  Future<void> _tryBiometricLogin() async {
+    if (_isLoading) return;
+    final ok = await _biometric.authenticate(reason: 'Přihlaste se do QRkni');
+    if (!ok || !mounted) return;
+    final creds = await _credentials.read();
+    if (creds == null || !mounted) return;
+    setState(() {
+      _emailController.text = creds.email;
+      _passwordController.text = creds.password;
+      _isLoading = true;
+      _errorMessage = null;
+    });
+    try {
+      await context.read<AuthService>().signIn(
+            email: creds.email,
+            password: creds.password,
+          );
+    } on FirebaseAuthException catch (e) {
+      if (!mounted) return;
+      // Pokud heslo selhalo, smažeme stará data — uživatel si změnil heslo apod.
+      if (e.code == 'wrong-password' || e.code == 'invalid-credential') {
+        await _credentials.clear();
+        setState(() => _hasStoredCredentials = false);
+      }
+      setState(() {
+        _errorMessage = _getErrorMessage(e.code);
+        _isLoading = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _errorMessage = 'Došlo k chybě: $e';
+        _isLoading = false;
+      });
+    }
+  }
 
   @override
   void dispose() {
@@ -44,6 +106,13 @@ class _AuthScreenState extends State<AuthScreen> {
           password: _passwordController.text,
         );
       }
+      // Pokud má uživatel dostupnou biometriku, nabídneme uložení přihlašovacích údajů
+      if (_biometricAvailable && mounted) {
+        await _offerToSaveCredentials(
+          _emailController.text.trim(),
+          _passwordController.text,
+        );
+      }
     } on FirebaseAuthException catch (e) {
       setState(() {
         _errorMessage = _getErrorMessage(e.code);
@@ -53,9 +122,32 @@ class _AuthScreenState extends State<AuthScreen> {
         _errorMessage = 'Došlo k chybě: ${e.toString()}';
       });
     } finally {
-      setState(() {
-        _isLoading = false;
-      });
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _offerToSaveCredentials(String email, String password) async {
+    final save = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Zapamatovat přihlášení?'),
+        content: const Text(
+          'Můžete se příště přihlásit pomocí Face ID místo psaní e-mailu a hesla.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Ne'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Zapamatovat'),
+          ),
+        ],
+      ),
+    );
+    if (save == true) {
+      await _credentials.save(email, password);
     }
   }
 
@@ -65,6 +157,8 @@ class _AuthScreenState extends State<AuthScreen> {
         return 'Uživatel nenalezen.';
       case 'wrong-password':
         return 'Nesprávné heslo.';
+      case 'invalid-credential':
+        return 'Nesprávné přihlašovací údaje.';
       case 'email-already-in-use':
         return 'Tento e-mail je již registrován.';
       case 'weak-password':
@@ -102,7 +196,35 @@ class _AuthScreenState extends State<AuthScreen> {
               style: Theme.of(context).textTheme.bodyMedium,
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 48),
+            const SizedBox(height: 32),
+            if (_isLogin && _biometricAvailable && _hasStoredCredentials) ...[
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton.icon(
+                  onPressed: _isLoading ? null : _tryBiometricLogin,
+                  icon: const Icon(Icons.face),
+                  label: const Text('Přihlásit se pomocí Face ID'),
+                  style: FilledButton.styleFrom(
+                    minimumSize: const Size(double.infinity, 52),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              const Row(
+                children: [
+                  Expanded(child: Divider()),
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 12),
+                    child: Text('nebo', style: TextStyle(color: Colors.grey)),
+                  ),
+                  Expanded(child: Divider()),
+                ],
+              ),
+              const SizedBox(height: 16),
+            ],
             // Email
             TextField(
               controller: _emailController,
