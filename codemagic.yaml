@@ -6,10 +6,16 @@ workflows:
       app_store_connect: CodeMagic
     environment:
       flutter: stable
-      ios_signing:
-        distribution_type: ad_hoc
-        bundle_identifier: com.jansvihalek.qrkni
+      vars:
+        BUNDLE_ID: "com.jansvihalek.qrkni"
+        XCODE_WORKSPACE: "ios/Runner.xcworkspace"
+        XCODE_SCHEME: "Runner"
     scripts:
+      - name: Fetch or create signing files
+        script: |
+          app-store-connect fetch-signing-files "$BUNDLE_ID" \
+            --type IOS_APP_ADHOC \
+            --create
       - name: Set up code signing
         script: xcode-project use-profiles
       - name: Flutter pub get
@@ -17,7 +23,7 @@ workflows:
       - name: Build iOS (no codesign)
         script: flutter build ios --release --no-codesign
       - name: Build IPA
-        script: xcode-project build-ipa --workspace ios/Runner.xcworkspace --scheme Runner
+        script: xcode-project build-ipa --workspace "$XCODE_WORKSPACE" --scheme "$XCODE_SCHEME"
     artifacts:
       - build/ios/ipa/*.ipa
       - /tmp/xcodebuild_logs/*.log
