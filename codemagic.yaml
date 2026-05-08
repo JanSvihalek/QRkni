@@ -7,8 +7,8 @@ workflows:
     environment:
       flutter: stable
       ios_signing:
-        distribution_type: ad_hoc
-        bundle_identifier: com.jansvihalek.qrkni
+        certificates:
+          - IOS_DISTRIBUTION_2
       vars:
         BUNDLE_ID: "com.jansvihalek.qrkni"
         XCODE_WORKSPACE: "ios/Runner.xcworkspace"
