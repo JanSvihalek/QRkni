@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../services/auth_service.dart';
+import '../services/biometric_service.dart';
 import '../services/firestore_service.dart';
 import 'items_screen.dart';
 import 'profiles_screen.dart';
@@ -18,33 +19,52 @@ class SettingsScreen extends StatefulWidget {
 class _SettingsScreenState extends State<SettingsScreen> {
   bool _autoBrightness = true;
   bool _flipQr = false;
+  bool _biometricEnabled = false;
+  bool _biometricAvailable = false;
 
   @override
   void initState() {
     super.initState();
+    BiometricService().isAvailable().then((available) {
+      if (!mounted) return;
+      setState(() => _biometricAvailable = available);
+    });
     FirestoreService().loadSettings(widget.userId).then((s) {
       if (!mounted) return;
       setState(() {
         _autoBrightness = s['auto_brightness'] as bool? ?? true;
         _flipQr = s['flip_qr'] as bool? ?? false;
+        _biometricEnabled = s['biometric_enabled'] as bool? ?? false;
       });
+    });
+  }
+
+  Future<void> _saveAll() async {
+    await FirestoreService().saveSettings(widget.userId, {
+      'auto_brightness': _autoBrightness,
+      'flip_qr': _flipQr,
+      'biometric_enabled': _biometricEnabled,
     });
   }
 
   Future<void> _setAutoBrightness(bool value) async {
     setState(() => _autoBrightness = value);
-    await FirestoreService().saveSettings(widget.userId, {
-      'auto_brightness': value,
-      'flip_qr': _flipQr,
-    });
+    await _saveAll();
   }
 
   Future<void> _setFlipQr(bool value) async {
     setState(() => _flipQr = value);
-    await FirestoreService().saveSettings(widget.userId, {
-      'auto_brightness': _autoBrightness,
-      'flip_qr': value,
-    });
+    await _saveAll();
+  }
+
+  Future<void> _setBiometricEnabled(bool value) async {
+    if (value) {
+      final ok = await BiometricService()
+          .authenticate(reason: 'Potvrďte aktivaci biometriky');
+      if (!ok) return;
+    }
+    setState(() => _biometricEnabled = value);
+    await _saveAll();
   }
 
   @override
@@ -190,6 +210,26 @@ class _SettingsScreenState extends State<SettingsScreen> {
               onChanged: _setFlipQr,
             ),
           ),
+          if (_biometricAvailable)
+            Card(
+              margin: const EdgeInsets.only(bottom: 8),
+              child: SwitchListTile(
+                secondary: Icon(
+                  Icons.fingerprint,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+                title: const Text(
+                  'Vyžadovat Face ID při otevření',
+                  style: TextStyle(fontWeight: FontWeight.w500),
+                ),
+                subtitle: const Text(
+                  'Aplikace se po spuštění odemkne biometrikou',
+                  style: TextStyle(fontSize: 12),
+                ),
+                value: _biometricEnabled,
+                onChanged: _setBiometricEnabled,
+              ),
+            ),
           _SettingsTile(
             icon: Icons.logout,
             title: 'Odhlásit se',

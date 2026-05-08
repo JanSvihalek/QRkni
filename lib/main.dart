@@ -6,7 +6,9 @@ import 'firebase_options.dart';
 import 'models/payment_profile.dart';
 import 'services/auth_service.dart';
 import 'services/firestore_service.dart';
+import 'services/biometric_service.dart';
 import 'screens/auth_screen.dart';
+import 'screens/lock_screen.dart';
 import 'screens/main_screen.dart';
 import 'screens/onboarding_screen.dart';
 
@@ -41,8 +43,15 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class _AuthWrapper extends StatelessWidget {
+class _AuthWrapper extends StatefulWidget {
   const _AuthWrapper();
+
+  @override
+  State<_AuthWrapper> createState() => _AuthWrapperState();
+}
+
+class _AuthWrapperState extends State<_AuthWrapper> {
+  String? _unlockedFor;
 
   @override
   Widget build(BuildContext context) {
@@ -53,15 +62,66 @@ class _AuthWrapper extends StatelessWidget {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Scaffold(body: Center(child: CircularProgressIndicator()));
         }
-        if (!snapshot.hasData) return const AuthScreen();
-        return _ProfileChecker(userId: snapshot.data!.uid);
+        final user = snapshot.data;
+        if (user == null) {
+          _unlockedFor = null;
+          return const AuthScreen();
+        }
+        if (_unlockedFor == user.uid) {
+          return _ProfileChecker(userId: user.uid);
+        }
+        return _BiometricGate(
+          userId: user.uid,
+          onUnlocked: () => setState(() => _unlockedFor = user.uid),
+        );
       },
     );
   }
 }
 
-// Po přihlášení zkontroluje jestli má uživatel alespoň jeden profil.
-// Pokud ne, zobrazí onboarding. Jinak hlavní obrazovku.
+class _BiometricGate extends StatefulWidget {
+  final String userId;
+  final VoidCallback onUnlocked;
+  const _BiometricGate({required this.userId, required this.onUnlocked});
+
+  @override
+  State<_BiometricGate> createState() => _BiometricGateState();
+}
+
+class _BiometricGateState extends State<_BiometricGate> {
+  late final Future<bool> _shouldLock;
+
+  @override
+  void initState() {
+    super.initState();
+    _shouldLock = _decideLock();
+  }
+
+  Future<bool> _decideLock() async {
+    final settings = await FirestoreService().loadSettings(widget.userId);
+    final enabled = settings['biometric_enabled'] as bool? ?? false;
+    if (!enabled) return false;
+    return BiometricService().isAvailable();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<bool>(
+      future: _shouldLock,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Scaffold(body: Center(child: CircularProgressIndicator()));
+        }
+        if (snapshot.data == true) {
+          return LockScreen(onUnlocked: widget.onUnlocked);
+        }
+        WidgetsBinding.instance.addPostFrameCallback((_) => widget.onUnlocked());
+        return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      },
+    );
+  }
+}
+
 class _ProfileChecker extends StatelessWidget {
   final String userId;
   const _ProfileChecker({required this.userId});
