@@ -2,15 +2,14 @@ workflows:
   ios-adhoc:
     name: iOS Ad Hoc
     max_build_duration: 60
-    integrations:
-      app_store_connect: CodeMagic
     environment:
       flutter: stable
       ios_signing:
-        distribution_type: ad_hoc
-        bundle_identifier: com.jansvihalek.qrkni
+        provisioning_profiles:
+          - QRKNI_AD_HOC
+        certificates:
+          - IOS_DISTRIBUTION_2
       vars:
-        BUNDLE_ID: "com.jansvihalek.qrkni"
         XCODE_WORKSPACE: "ios/Runner.xcworkspace"
         XCODE_SCHEME: "Runner"
     scripts:
@@ -18,9 +17,6 @@ workflows:
         script: |
           keychain initialize
           keychain add-certificates
-          app-store-connect fetch-signing-files "$BUNDLE_ID" \
-            --type IOS_APP_ADHOC \
-            --create
           xcode-project use-profiles
       - name: Flutter pub get
         script: flutter pub get
