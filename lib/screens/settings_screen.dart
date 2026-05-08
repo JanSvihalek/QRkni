@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+
 import '../services/auth_service.dart';
 import '../services/firestore_service.dart';
 import 'items_screen.dart';
@@ -16,32 +16,35 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
-  static const _brightnessKey = 'auto_brightness';
-  static const _flipKey = 'flip_qr';
   bool _autoBrightness = true;
   bool _flipQr = false;
 
   @override
   void initState() {
     super.initState();
-    SharedPreferences.getInstance().then((prefs) {
+    FirestoreService().loadSettings(widget.userId).then((s) {
+      if (!mounted) return;
       setState(() {
-        _autoBrightness = prefs.getBool(_brightnessKey) ?? true;
-        _flipQr = prefs.getBool(_flipKey) ?? false;
+        _autoBrightness = s['auto_brightness'] as bool? ?? true;
+        _flipQr = s['flip_qr'] as bool? ?? false;
       });
     });
   }
 
   Future<void> _setAutoBrightness(bool value) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool(_brightnessKey, value);
     setState(() => _autoBrightness = value);
+    await FirestoreService().saveSettings(widget.userId, {
+      'auto_brightness': value,
+      'flip_qr': _flipQr,
+    });
   }
 
   Future<void> _setFlipQr(bool value) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool(_flipKey, value);
     setState(() => _flipQr = value);
+    await FirestoreService().saveSettings(widget.userId, {
+      'auto_brightness': _autoBrightness,
+      'flip_qr': value,
+    });
   }
 
   @override

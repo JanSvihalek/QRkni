@@ -101,4 +101,16 @@ class FirestoreService {
   Future<void> addTransaction(String uid, PaymentTransaction transaction) async {
     await _transactionsRef(uid).add(transaction.toFirestore());
   }
+
+  // ── Nastavení aplikace ───────────────────────────────────────────────────
+
+  Future<Map<String, dynamic>> loadSettings(String uid) async {
+    final doc = await _userRef(uid).get();
+    if (!doc.exists) return {};
+    return (doc.data()!['settings'] as Map<String, dynamic>?) ?? {};
+  }
+
+  Future<void> saveSettings(String uid, Map<String, dynamic> settings) async {
+    await _userRef(uid).set({'settings': settings}, SetOptions(merge: true));
+  }
 }
