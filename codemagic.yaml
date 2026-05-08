@@ -11,17 +11,22 @@ workflows:
         XCODE_WORKSPACE: "ios/Runner.xcworkspace"
         XCODE_SCHEME: "Runner"
     scripts:
-      - name: Initialize keychain
-        script: keychain initialize
-      - name: Fetch or create signing files
+      - name: Set up signing
         script: |
+          keychain initialize
+
+          # Explicitly create distribution certificate with private key
+          app-store-connect certificates create \
+            --type IOS_DISTRIBUTION \
+            --save
+
+          # Fetch / create Ad Hoc provisioning profile (cert already exists)
           app-store-connect fetch-signing-files "$BUNDLE_ID" \
             --type IOS_APP_ADHOC \
             --create
-      - name: Add certificates to keychain
-        script: keychain add-certificates
-      - name: Set up code signing
-        script: xcode-project use-profiles
+
+          keychain add-certificates
+          xcode-project use-profiles
       - name: Flutter pub get
         script: flutter pub get
       - name: Build iOS (no codesign)
