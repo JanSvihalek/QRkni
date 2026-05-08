@@ -19,6 +19,16 @@ workflows:
           echo "=== Generating private key ==="
           openssl genrsa -out /tmp/codemagic_cert_key.pem 2048
 
+          echo "=== Revoking existing distribution certificates ==="
+          app-store-connect certificates list --type IOS_DISTRIBUTION --json \
+            | python3 -c "import json,sys;[print(c['id']) for c in json.load(sys.stdin)]" \
+            | while read cert_id; do
+                if [ -n "$cert_id" ]; then
+                  echo "Revoking $cert_id"
+                  app-store-connect certificates delete "$cert_id" --ignore-not-found || true
+                fi
+              done
+
           echo "=== Creating distribution certificate ==="
           app-store-connect certificates create \
             --type IOS_DISTRIBUTION \
