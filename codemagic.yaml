@@ -2,13 +2,13 @@ workflows:
   ios-adhoc:
     name: iOS Ad Hoc
     max_build_duration: 60
+    integrations:
+      app_store_connect: QRkni
     environment:
       flutter: stable
       ios_signing:
         distribution_type: ad_hoc
         bundle_identifier: com.jansvihalek.qrkni
-      integrations:
-        app_store_connect: QRkni
     scripts:
       - name: Set up code signing
         script: xcode-project use-profiles
