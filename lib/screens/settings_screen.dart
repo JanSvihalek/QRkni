@@ -6,6 +6,7 @@ import '../services/biometric_service.dart';
 import '../services/credential_storage.dart';
 import '../services/firestore_service.dart';
 import '../theme/app_theme.dart';
+import '../widgets/logo_scan_brackets.dart';
 import 'items_screen.dart';
 import 'profiles_screen.dart';
 import 'transactions_screen.dart';
@@ -260,6 +261,25 @@ class _SettingsScreenState extends State<SettingsScreen> {
               if (confirmed == true) await authService.signOut();
             },
           ),
+          const SizedBox(height: 32),
+          const Center(
+            child: Column(
+              children: [
+                LogoScanBrackets(size: 36),
+                SizedBox(height: 8),
+                Text(
+                  'QRkni',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: -0.2,
+                    color: AppColors.muted,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 24),
         ],
       ),
     );

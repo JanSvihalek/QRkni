@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../services/auth_service.dart';
 import '../services/biometric_service.dart';
+import '../theme/app_theme.dart';
+import '../widgets/logo_scan_brackets.dart';
 
 class LockScreen extends StatefulWidget {
   final VoidCallback onUnlocked;
@@ -54,22 +56,23 @@ class _LockScreenState extends State<LockScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(
-                  Icons.lock_outline,
-                  size: 72,
-                  color: Theme.of(context).colorScheme.primary,
-                ),
-                const SizedBox(height: 24),
+                const LogoScanBrackets(size: 84),
+                const SizedBox(height: 28),
                 const Text(
                   'QRkni je zamčeno',
-                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.w600),
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: -0.6,
+                    color: AppColors.heading,
+                  ),
                 ),
                 const SizedBox(height: 8),
                 Text(
                   _failed
                       ? 'Ověření se nezdařilo. Zkuste to znovu.'
                       : 'Pro odemčení použijte Face ID',
-                  style: TextStyle(color: Colors.grey.shade700),
+                  style: const TextStyle(color: AppColors.muted),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 40),

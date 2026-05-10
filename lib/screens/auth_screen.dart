@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
@@ -102,25 +104,22 @@ class _AuthScreenState extends State<AuthScreen> {
       _errorMessage = null;
     });
 
+    final email = _emailController.text.trim();
+    final password = _passwordController.text;
+
     try {
       final authService = Provider.of<AuthService>(context, listen: false);
 
       if (_isLogin) {
-        await authService.signIn(
-          email: _emailController.text.trim(),
-          password: _passwordController.text,
-        );
+        await authService.signIn(email: email, password: password);
       } else {
-        await authService.signUp(
-          email: _emailController.text.trim(),
-          password: _passwordController.text,
-        );
+        await authService.signUp(email: email, password: password);
       }
-      if (_biometricAvailable && mounted) {
-        await _offerToSaveCredentials(
-          _emailController.text.trim(),
-          _passwordController.text,
-        );
+      // Po úspěšné autentizaci Firebase okamžitě fire auth-state stream a tahle
+      // obrazovka se odmountuje. Uložení creds proto nesmí čekat na mounted —
+      // unawaited dokončí keychain zápis i po dispose widgetu.
+      if (_biometricAvailable) {
+        unawaited(_credentials.save(email, password));
       }
     } on FirebaseAuthException catch (e) {
       setState(() {
@@ -153,31 +152,6 @@ class _AuthScreenState extends State<AuthScreen> {
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
-    }
-  }
-
-  Future<void> _offerToSaveCredentials(String email, String password) async {
-    final save = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Zapamatovat přihlášení?'),
-        content: const Text(
-          'Můžete se příště přihlásit pomocí Face ID místo psaní e-mailu a hesla.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Ne'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Zapamatovat'),
-          ),
-        ],
-      ),
-    );
-    if (save == true) {
-      await _credentials.save(email, password);
     }
   }
 
