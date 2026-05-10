@@ -511,7 +511,7 @@ class _AuthScreenState extends State<AuthScreen> {
                           ),
                           SizedBox(width: 8),
                           Text(
-                            'Face ID',
+                            'Přihlášení biometricky',
                             style: TextStyle(
                               fontWeight: FontWeight.w600,
                               color: _headingColor,
