@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../services/auth_service.dart';
@@ -339,9 +340,9 @@ class _AuthScreenState extends State<AuthScreen> {
                     ),
                   ),
                   const SizedBox(width: 10),
-                  const Text(
+                  Text(
                     'QRkni',
-                    style: TextStyle(
+                    style: GoogleFonts.spaceGrotesk(
                       fontSize: 18,
                       fontWeight: FontWeight.w600,
                       color: _headingColor,
@@ -352,7 +353,7 @@ class _AuthScreenState extends State<AuthScreen> {
               const SizedBox(height: 40),
               Text(
                 _isLogin ? 'Vítej zpátky' : 'Vytvoř si účet',
-                style: const TextStyle(
+                style: GoogleFonts.spaceGrotesk(
                   fontSize: 32,
                   fontWeight: FontWeight.w800,
                   color: _headingColor,
