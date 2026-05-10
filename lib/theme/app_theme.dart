@@ -2,13 +2,30 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class AppColors {
-  static const primaryBlue = Color(0xFF2C45F2);
-  static const heading = Color(0xFF0F172A);
-  static const muted = Color(0xFF6B7280);
-  static const label = Color(0xFF9CA3AF);
-  static const border = Color(0xFFE5E7EB);
+  // Brand
+  static const primaryBlue = Color(0xFF1652F0); // brand-600
+  static const primaryPress = Color(0xFF0E3FC2); // brand-700
+  static const primaryHover = Color(0xFF3B73FF); // brand-500
+  static const primaryTint = Color(0xFFE6EEFF); // brand-100
+  static const primaryFaint = Color(0xFFF2F6FF); // brand-050
+
+  // Ink (text & UI — cool near-black with blue cast)
+  static const heading = Color(0xFF0A1330); // ink-900
+  static const ink700 = Color(0xFF2A335A);
+  static const muted = Color(0xFF5B6386); // ink-500
+  static const label = Color(0xFF858CAB); // ink-400
+  static const border2 = Color(0xFFB6BACE); // ink-300
+  static const border = Color(0xFFECEEF5); // ink-100 (divider)
+  static const borderStrong = Color(0xFFD7DAE6); // ink-200
+  static const surfaceMuted = Color(0xFFF5F6FA); // ink-050
+
+  // Surface
   static const surface = Colors.white;
-  static const surfaceMuted = Color(0xFFF8FAFC);
+  static const surfaceAlt = Color(0xFFF8F9FC);
+
+  // Semantic
+  static const success = Color(0xFF16A34A);
+  static const warn = Color(0xFFD97706);
   static const danger = Color(0xFFDC2626);
 }
 
@@ -70,23 +87,23 @@ ThemeData buildAppTheme() {
       hintStyle: const TextStyle(color: AppColors.label),
       labelStyle: const TextStyle(color: AppColors.muted),
       border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: AppColors.border),
+        borderRadius: BorderRadius.circular(14),
+        borderSide: const BorderSide(color: AppColors.border, width: 1.5),
       ),
       enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: AppColors.border),
+        borderRadius: BorderRadius.circular(14),
+        borderSide: const BorderSide(color: AppColors.border, width: 1.5),
       ),
       focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(14),
         borderSide: const BorderSide(color: AppColors.primaryBlue, width: 1.5),
       ),
       errorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: AppColors.danger),
+        borderRadius: BorderRadius.circular(14),
+        borderSide: const BorderSide(color: AppColors.danger, width: 1.5),
       ),
       focusedErrorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(14),
         borderSide: const BorderSide(color: AppColors.danger, width: 1.5),
       ),
     ),
@@ -96,7 +113,7 @@ ThemeData buildAppTheme() {
         foregroundColor: Colors.white,
         elevation: 0,
         minimumSize: const Size(double.infinity, 56),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         textStyle: GoogleFonts.jetBrainsMono(
           fontSize: 16,
           fontWeight: FontWeight.w600,
@@ -108,7 +125,7 @@ ThemeData buildAppTheme() {
         backgroundColor: AppColors.primaryBlue,
         foregroundColor: Colors.white,
         minimumSize: const Size(double.infinity, 56),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         textStyle: GoogleFonts.jetBrainsMono(
           fontSize: 16,
           fontWeight: FontWeight.w600,

@@ -6,6 +6,7 @@ import '../services/auth_service.dart';
 import '../services/biometric_service.dart';
 import '../services/credential_storage.dart';
 import '../theme/app_theme.dart';
+import '../widgets/logo_scan_brackets.dart';
 
 class AuthScreen extends StatefulWidget {
   const AuthScreen({super.key});
@@ -258,15 +259,15 @@ class _AuthScreenState extends State<AuthScreen> {
       contentPadding:
           const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: _borderColor),
+        borderRadius: BorderRadius.circular(14),
+        borderSide: const BorderSide(color: _borderColor, width: 1.5),
       ),
       enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: _borderColor),
+        borderRadius: BorderRadius.circular(14),
+        borderSide: const BorderSide(color: _borderColor, width: 1.5),
       ),
       focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(14),
         borderSide: const BorderSide(color: _primaryBlue, width: 1.5),
       ),
     );
@@ -332,20 +333,14 @@ class _AuthScreenState extends State<AuthScreen> {
               // Logo + název
               Row(
                 children: [
-                  Container(
-                    width: 28,
-                    height: 28,
-                    decoration: BoxDecoration(
-                      border: Border.all(color: _primaryBlue, width: 3),
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                  ),
+                  const LogoScanBrackets(size: 32),
                   const SizedBox(width: 10),
                   Text(
                     'QRkni',
                     style: GoogleFonts.spaceGrotesk(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
+                      fontSize: 22,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: -0.6,
                       color: _headingColor,
                     ),
                   ),
@@ -355,10 +350,11 @@ class _AuthScreenState extends State<AuthScreen> {
               Text(
                 _isLogin ? 'Vítej zpátky' : 'Vytvoř si účet',
                 style: GoogleFonts.spaceGrotesk(
-                  fontSize: 32,
-                  fontWeight: FontWeight.w800,
+                  fontSize: 30,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: -1,
                   color: _headingColor,
-                  height: 1.15,
+                  height: 1.1,
                 ),
               ),
               const SizedBox(height: 12),
@@ -442,33 +438,47 @@ class _AuthScreenState extends State<AuthScreen> {
               ],
               const SizedBox(height: 12),
 
-              SizedBox(
-                width: double.infinity,
-                height: 56,
-                child: ElevatedButton(
-                  onPressed: _isLoading ? null : _authenticate,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: _primaryBlue,
-                    foregroundColor: Colors.white,
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
+              DecoratedBox(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: _primaryBlue.withValues(alpha: 0.45),
+                      blurRadius: 24,
+                      spreadRadius: -8,
+                      offset: const Offset(0, 8),
                     ),
-                    textStyle: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
+                  ],
+                ),
+                child: SizedBox(
+                  width: double.infinity,
+                  height: 56,
+                  child: ElevatedButton(
+                    onPressed: _isLoading ? null : _authenticate,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: _primaryBlue,
+                      foregroundColor: Colors.white,
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      textStyle: const TextStyle(
+                        fontSize: 17,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: -0.2,
+                      ),
                     ),
+                    child: _isLoading
+                        ? const SizedBox(
+                            height: 22,
+                            width: 22,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          )
+                        : Text(_isLogin ? 'Přihlásit se' : 'Zaregistrovat se'),
                   ),
-                  child: _isLoading
-                      ? const SizedBox(
-                          height: 22,
-                          width: 22,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: Colors.white,
-                          ),
-                        )
-                      : Text(_isLogin ? 'Přihlásit se' : 'Zaregistrovat se'),
                 ),
               ),
 

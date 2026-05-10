@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/payment_profile.dart';
 import '../services/firestore_service.dart';
-import '../theme/app_theme.dart';
+import '../widgets/logo_scan_brackets.dart';
 
 class OnboardingScreen extends StatefulWidget {
   final String userId;
@@ -70,7 +70,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           child: ListView(
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
             children: [
-              const Icon(Icons.qr_code_2, size: 64, color: AppColors.primaryBlue),
+              const Center(child: LogoScanBrackets(size: 72)),
               const SizedBox(height: 16),
               Text(
                 'Vítejte!',
