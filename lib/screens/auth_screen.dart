@@ -13,6 +13,13 @@ class AuthScreen extends StatefulWidget {
 }
 
 class _AuthScreenState extends State<AuthScreen> {
+  static const _primaryBlue = Color(0xFF2C45F2);
+  static const _headingColor = Color(0xFF0F172A);
+  static const _mutedText = Color(0xFF6B7280);
+  static const _labelColor = Color(0xFF9CA3AF);
+  static const _borderColor = Color(0xFFE5E7EB);
+  static const _fieldFill = Colors.white;
+
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _credentials = CredentialStorage();
@@ -21,6 +28,7 @@ class _AuthScreenState extends State<AuthScreen> {
   bool _isLoading = false;
   bool _hasStoredCredentials = false;
   bool _biometricAvailable = false;
+  bool _passwordVisible = false;
   String? _errorMessage;
 
   @override
@@ -61,7 +69,6 @@ class _AuthScreenState extends State<AuthScreen> {
           );
     } on FirebaseAuthException catch (e) {
       if (!mounted) return;
-      // Pokud heslo selhalo, smažeme stará data — uživatel si změnil heslo apod.
       if (e.code == 'wrong-password' || e.code == 'invalid-credential') {
         await _credentials.clear();
         setState(() => _hasStoredCredentials = false);
@@ -106,7 +113,6 @@ class _AuthScreenState extends State<AuthScreen> {
           password: _passwordController.text,
         );
       }
-      // Pokud má uživatel dostupnou biometriku, nabídneme uložení přihlašovacích údajů
       if (_biometricAvailable && mounted) {
         await _offerToSaveCredentials(
           _emailController.text.trim(),
@@ -121,6 +127,27 @@ class _AuthScreenState extends State<AuthScreen> {
       setState(() {
         _errorMessage = 'Došlo k chybě: ${e.toString()}';
       });
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _signInWithGoogle() async {
+    if (_isLoading) return;
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+    try {
+      await context.read<AuthService>().signInWithGoogle();
+    } on FirebaseAuthException catch (e) {
+      if (mounted) {
+        setState(() => _errorMessage = _getErrorMessage(e.code));
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _errorMessage = 'Přihlášení přes Google se nezdařilo.');
+      }
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -151,6 +178,56 @@ class _AuthScreenState extends State<AuthScreen> {
     }
   }
 
+  Future<void> _showForgotPasswordDialog() async {
+    final controller = TextEditingController(
+      text: _emailController.text.trim(),
+    );
+    final email = await showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Obnovit heslo'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text(
+              'Zadejte svůj e-mail a pošleme vám odkaz pro obnovení hesla.',
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: controller,
+              keyboardType: TextInputType.emailAddress,
+              autofocus: true,
+              decoration: const InputDecoration(labelText: 'E-mail'),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Zrušit'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, controller.text.trim()),
+            child: const Text('Odeslat'),
+          ),
+        ],
+      ),
+    );
+    if (email == null || email.isEmpty || !mounted) return;
+    try {
+      await context.read<AuthService>().resetPassword(email: email);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Odkaz pro obnovení byl odeslán.')),
+      );
+    } on FirebaseAuthException catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(_getErrorMessage(e.code))),
+      );
+    }
+  }
+
   String _getErrorMessage(String code) {
     switch (code) {
       case 'user-not-found':
@@ -170,138 +247,316 @@ class _AuthScreenState extends State<AuthScreen> {
     }
   }
 
+  InputDecoration _fieldDecoration({String? hintText}) {
+    return InputDecoration(
+      hintText: hintText,
+      hintStyle: const TextStyle(color: _labelColor),
+      filled: true,
+      fillColor: _fieldFill,
+      contentPadding:
+          const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: _borderColor),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: _borderColor),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: _primaryBlue, width: 1.5),
+      ),
+    );
+  }
+
+  Widget _fieldLabel(String text) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Text(
+        text,
+        style: const TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+          letterSpacing: 0.6,
+          color: _labelColor,
+        ),
+      ),
+    );
+  }
+
+  Widget _socialButton({
+    required Widget child,
+    required VoidCallback? onPressed,
+  }) {
+    return Expanded(
+      child: SizedBox(
+        height: 56,
+        child: OutlinedButton(
+          onPressed: onPressed,
+          style: OutlinedButton.styleFrom(
+            backgroundColor: Colors.white,
+            side: const BorderSide(color: _borderColor),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(14),
+            ),
+          ),
+          child: child,
+        ),
+      ),
+    );
+  }
+
+  Widget _googleIcon() {
+    return Image.asset(
+      'assets/images/google_logo.png',
+      width: 22,
+      height: 22,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final showFaceId = _biometricAvailable && _hasStoredCredentials && _isLogin;
+
     return Scaffold(
-      appBar: AppBar(
-        title: Text(_isLogin ? 'Přihlášení' : 'Registrace'),
-        centerTitle: true,
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            SizedBox(height: MediaQuery.of(context).size.height * 0.1),
-            const Icon(Icons.qr_code_2, size: 64, color: Colors.blue),
-            const SizedBox(height: 24),
-            Text(
-              'QRkni',
-              style: Theme.of(context).textTheme.headlineMedium,
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              _isLogin ? 'Přihlaste se ke svému účtu' : 'Vytvořte nový účet',
-              style: Theme.of(context).textTheme.bodyMedium,
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 32),
-            if (_isLogin && _biometricAvailable && _hasStoredCredentials) ...[
-              SizedBox(
-                width: double.infinity,
-                child: FilledButton.icon(
-                  onPressed: _isLoading ? null : _tryBiometricLogin,
-                  icon: const Icon(Icons.face),
-                  label: const Text('Přihlásit se pomocí Face ID'),
-                  style: FilledButton.styleFrom(
-                    minimumSize: const Size(double.infinity, 52),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
+      backgroundColor: Colors.white,
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Logo + název
+              Row(
+                children: [
+                  Container(
+                    width: 28,
+                    height: 28,
+                    decoration: BoxDecoration(
+                      border: Border.all(color: _primaryBlue, width: 3),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  const Text(
+                    'QRkni',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                      color: _headingColor,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 40),
+              Text(
+                _isLogin ? 'Vítej zpátky' : 'Vytvoř si účet',
+                style: const TextStyle(
+                  fontSize: 32,
+                  fontWeight: FontWeight.w800,
+                  color: _headingColor,
+                  height: 1.15,
+                ),
+              ),
+              const SizedBox(height: 12),
+              const Text(
+                'Generuj QR k platbě převodem pro svůj stánek '
+                '— bez sdílení účtu s brigádníky.',
+                style: TextStyle(
+                  fontSize: 15,
+                  color: _mutedText,
+                  height: 1.4,
+                ),
+              ),
+              const SizedBox(height: 32),
+
+              _fieldLabel('E-MAIL'),
+              TextField(
+                controller: _emailController,
+                decoration: _fieldDecoration(hintText: 'jana@stanek.cz'),
+                keyboardType: TextInputType.emailAddress,
+                enabled: !_isLoading,
+              ),
+              const SizedBox(height: 20),
+
+              _fieldLabel('HESLO'),
+              TextField(
+                controller: _passwordController,
+                decoration: _fieldDecoration().copyWith(
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      _passwordVisible
+                          ? Icons.visibility_outlined
+                          : Icons.visibility_off_outlined,
+                      color: _labelColor,
+                    ),
+                    onPressed: () => setState(
+                      () => _passwordVisible = !_passwordVisible,
                     ),
                   ),
                 ),
+                obscureText: !_passwordVisible,
+                enabled: !_isLoading,
               ),
-              const SizedBox(height: 16),
+
+              if (_isLogin)
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton(
+                    onPressed: _isLoading ? null : _showForgotPasswordDialog,
+                    style: TextButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 4,
+                        vertical: 8,
+                      ),
+                      minimumSize: Size.zero,
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      foregroundColor: _primaryBlue,
+                    ),
+                    child: const Text(
+                      'Zapomenuté heslo?',
+                      style: TextStyle(fontWeight: FontWeight.w600),
+                    ),
+                  ),
+                )
+              else
+                const SizedBox(height: 16),
+
+              if (_errorMessage != null) ...[
+                const SizedBox(height: 8),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.red.shade50,
+                    border: Border.all(color: Colors.red.shade200),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Text(
+                    _errorMessage!,
+                    style: TextStyle(color: Colors.red.shade800),
+                  ),
+                ),
+              ],
+              const SizedBox(height: 12),
+
+              SizedBox(
+                width: double.infinity,
+                height: 56,
+                child: ElevatedButton(
+                  onPressed: _isLoading ? null : _authenticate,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: _primaryBlue,
+                    foregroundColor: Colors.white,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    textStyle: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  child: _isLoading
+                      ? const SizedBox(
+                          height: 22,
+                          width: 22,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                      : Text(_isLogin ? 'Přihlásit se' : 'Zaregistrovat se'),
+                ),
+              ),
+
+              const SizedBox(height: 24),
               const Row(
                 children: [
-                  Expanded(child: Divider()),
+                  Expanded(child: Divider(color: _borderColor)),
                   Padding(
                     padding: EdgeInsets.symmetric(horizontal: 12),
-                    child: Text('nebo', style: TextStyle(color: Colors.grey)),
+                    child: Text(
+                      'NEBO',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: 0.8,
+                        color: _labelColor,
+                      ),
+                    ),
                   ),
-                  Expanded(child: Divider()),
+                  Expanded(child: Divider(color: _borderColor)),
                 ],
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 20),
+
+              Row(
+                children: [
+                  _socialButton(
+                    onPressed: _isLoading ? null : _signInWithGoogle,
+                    child: _googleIcon(),
+                  ),
+                  if (showFaceId) ...[
+                    const SizedBox(width: 12),
+                    _socialButton(
+                      onPressed: _isLoading ? null : _tryBiometricLogin,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: const [
+                          Icon(
+                            Icons.face_outlined,
+                            color: _primaryBlue,
+                            size: 22,
+                          ),
+                          SizedBox(width: 8),
+                          Text(
+                            'Face ID',
+                            style: TextStyle(
+                              fontWeight: FontWeight.w600,
+                              color: _headingColor,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+
+              const SizedBox(height: 32),
+              Center(
+                child: Wrap(
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: [
+                    Text(
+                      _isLogin ? 'Nemáš účet? ' : 'Máš už účet? ',
+                      style: const TextStyle(color: _mutedText),
+                    ),
+                    GestureDetector(
+                      onTap: _isLoading
+                          ? null
+                          : () {
+                              setState(() {
+                                _isLogin = !_isLogin;
+                                _errorMessage = null;
+                                _emailController.clear();
+                                _passwordController.clear();
+                              });
+                            },
+                      child: Text(
+                        _isLogin ? 'Vytvoř si ho' : 'Přihlas se',
+                        style: const TextStyle(
+                          color: _primaryBlue,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ],
-            // Email
-            TextField(
-              controller: _emailController,
-              decoration: InputDecoration(
-                labelText: 'E-mail',
-                prefixIcon: const Icon(Icons.email),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-              keyboardType: TextInputType.emailAddress,
-              enabled: !_isLoading,
-            ),
-            const SizedBox(height: 16),
-            // Heslo
-            TextField(
-              controller: _passwordController,
-              decoration: InputDecoration(
-                labelText: 'Heslo',
-                prefixIcon: const Icon(Icons.lock),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-              obscureText: true,
-              enabled: !_isLoading,
-            ),
-            const SizedBox(height: 24),
-            // Chybová zpráva
-            if (_errorMessage != null)
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.red.shade100,
-                  border: Border.all(color: Colors.red),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  _errorMessage!,
-                  style: TextStyle(color: Colors.red.shade900),
-                ),
-              ),
-            if (_errorMessage != null) const SizedBox(height: 16),
-            // Tlačítko
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: _isLoading ? null : _authenticate,
-                child: _isLoading
-                    ? const SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : Text(_isLogin ? 'Přihlásit se' : 'Zaregistrovat se'),
-              ),
-            ),
-            const SizedBox(height: 16),
-            // Přepínač Login/Registrace
-            TextButton(
-              onPressed: _isLoading
-                  ? null
-                  : () {
-                      setState(() {
-                        _isLogin = !_isLogin;
-                        _errorMessage = null;
-                        _emailController.clear();
-                        _passwordController.clear();
-                      });
-                    },
-              child: Text(
-                _isLogin
-                    ? 'Nemáte účet? Zaregistrujte se'
-                    : 'Máte už účet? Přihlaste se',
-              ),
-            ),
-          ],
+          ),
         ),
       ),
     );
