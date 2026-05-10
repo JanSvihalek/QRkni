@@ -28,6 +28,7 @@ class _AuthScreenState extends State<AuthScreen> {
 
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
   final _credentials = CredentialStorage();
   final _biometric = BiometricService();
   bool _isLogin = true;
@@ -38,7 +39,7 @@ class _AuthScreenState extends State<AuthScreen> {
   String? _errorMessage;
 
   bool get _isIOS => Platform.isIOS;
-  String get _biometricLabel => _isIOS ? 'Face ID' : 'Přihlášení biometricky';
+  String get _biometricLabel => _isIOS ? 'FaceID' : 'Přihlášení biometricky';
   String get _biometricHintMessage => _isIOS
       ? 'Nejdřív se přihlas e-mailem — pak budeš moct používat Face ID.'
       : 'Nejdřív se přihlas e-mailem — pak budeš moct používat biometriku.';
@@ -115,17 +116,24 @@ class _AuthScreenState extends State<AuthScreen> {
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
+    _confirmPasswordController.dispose();
     super.dispose();
   }
 
   Future<void> _authenticate() async {
+    final email = _emailController.text.trim();
+    final password = _passwordController.text;
+    final confirmPassword = _confirmPasswordController.text;
+
+    if (!_isLogin && password != confirmPassword) {
+      setState(() => _errorMessage = 'Hesla se neshodují.');
+      return;
+    }
+
     setState(() {
       _isLoading = true;
       _errorMessage = null;
     });
-
-    final email = _emailController.text.trim();
-    final password = _passwordController.text;
 
     try {
       final authService = Provider.of<AuthService>(context, listen: false);
@@ -392,6 +400,17 @@ class _AuthScreenState extends State<AuthScreen> {
                 enabled: !_isLoading,
               ),
 
+              if (!_isLogin) ...[
+                const SizedBox(height: 20),
+                _fieldLabel('POTVRDIT HESLO'),
+                TextField(
+                  controller: _confirmPasswordController,
+                  decoration: _fieldDecoration(),
+                  obscureText: !_passwordVisible,
+                  enabled: !_isLoading,
+                ),
+              ],
+
               if (_isLogin)
                 Align(
                   alignment: Alignment.centerRight,
@@ -556,6 +575,7 @@ class _AuthScreenState extends State<AuthScreen> {
                                 _errorMessage = null;
                                 _emailController.clear();
                                 _passwordController.clear();
+                                _confirmPasswordController.clear();
                               });
                             },
                       child: Text(
