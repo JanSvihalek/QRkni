@@ -333,7 +333,7 @@ class _AuthScreenState extends State<AuthScreen> {
               ),
               const SizedBox(height: 12),
               const Text(
-                'Plať přes QR kód bez poplatků'
+                'Plať přes QR kód bez poplatků\n'
                 'Bez sdílení bankovního účtu s ostatními.',
                 style: TextStyle(
                   fontSize: 15,
@@ -505,7 +505,7 @@ class _AuthScreenState extends State<AuthScreen> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: const [
                           Icon(
-                            Icons.face_outlined,
+                            Icons.fingerprint,
                             color: _primaryBlue,
                             size: 22,
                           ),
