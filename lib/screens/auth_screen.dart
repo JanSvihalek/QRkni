@@ -5,6 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../services/auth_service.dart';
 import '../services/biometric_service.dart';
 import '../services/credential_storage.dart';
+import '../theme/app_theme.dart';
 
 class AuthScreen extends StatefulWidget {
   const AuthScreen({super.key});
@@ -14,12 +15,12 @@ class AuthScreen extends StatefulWidget {
 }
 
 class _AuthScreenState extends State<AuthScreen> {
-  static const _primaryBlue = Color(0xFF2C45F2);
-  static const _headingColor = Color(0xFF0F172A);
-  static const _mutedText = Color(0xFF6B7280);
-  static const _labelColor = Color(0xFF9CA3AF);
-  static const _borderColor = Color(0xFFE5E7EB);
-  static const _fieldFill = Colors.white;
+  static const _primaryBlue = AppColors.primaryBlue;
+  static const _headingColor = AppColors.heading;
+  static const _mutedText = AppColors.muted;
+  static const _labelColor = AppColors.label;
+  static const _borderColor = AppColors.border;
+  static const _fieldFill = AppColors.surface;
 
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
@@ -318,7 +319,7 @@ class _AuthScreenState extends State<AuthScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final showFaceId = _biometricAvailable && _hasStoredCredentials && _isLogin;
+    final showFaceId = _biometricAvailable && _isLogin;
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -362,8 +363,8 @@ class _AuthScreenState extends State<AuthScreen> {
               ),
               const SizedBox(height: 12),
               const Text(
-                'Generuj QR k platbě převodem pro svůj stánek '
-                '— bez sdílení účtu s brigádníky.',
+                'Plať přes QR kód bez poplatků'
+                'Bez sdílení bankovního účtu s ostatními.',
                 style: TextStyle(
                   fontSize: 15,
                   color: _mutedText,
@@ -501,7 +502,21 @@ class _AuthScreenState extends State<AuthScreen> {
                   if (showFaceId) ...[
                     const SizedBox(width: 12),
                     _socialButton(
-                      onPressed: _isLoading ? null : _tryBiometricLogin,
+                      onPressed: _isLoading
+                          ? null
+                          : () {
+                              if (_hasStoredCredentials) {
+                                _tryBiometricLogin();
+                              } else {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text(
+                                      'Nejdřív se přihlas e-mailem — pak budeš moct používat Face ID.',
+                                    ),
+                                  ),
+                                );
+                              }
+                            },
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: const [

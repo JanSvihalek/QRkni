@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/payment_profile.dart';
 import '../services/firestore_service.dart';
+import '../theme/app_theme.dart';
 import 'profile_form_screen.dart';
 
 class ProfilesScreen extends StatelessWidget {
@@ -80,7 +81,7 @@ class ProfilesScreen extends StatelessWidget {
                         ),
                       ),
                       IconButton(
-                        icon: const Icon(Icons.delete_outline, color: Colors.red),
+                        icon: const Icon(Icons.delete_outline, color: AppColors.danger),
                         onPressed: () => _confirmDelete(context, firestoreService, profile),
                       ),
                     ],
@@ -127,7 +128,7 @@ class ProfilesScreen extends StatelessWidget {
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            style: TextButton.styleFrom(foregroundColor: AppColors.danger),
             child: const Text('Smazat'),
           ),
         ],

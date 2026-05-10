@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/payment_item.dart';
 import '../services/firestore_service.dart';
+import '../theme/app_theme.dart';
 import 'item_form_screen.dart';
 
 class ItemsScreen extends StatelessWidget {
@@ -69,7 +70,7 @@ class ItemsScreen extends StatelessWidget {
                         ),
                       ),
                       IconButton(
-                        icon: const Icon(Icons.delete_outline, color: Colors.red),
+                        icon: const Icon(Icons.delete_outline, color: AppColors.danger),
                         onPressed: () => _confirmDelete(context, service, item),
                       ),
                     ],
@@ -108,7 +109,7 @@ class ItemsScreen extends StatelessWidget {
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            style: TextButton.styleFrom(foregroundColor: AppColors.danger),
             child: const Text('Smazat'),
           ),
         ],

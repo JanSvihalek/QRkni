@@ -5,6 +5,7 @@ import '../services/auth_service.dart';
 import '../services/biometric_service.dart';
 import '../services/credential_storage.dart';
 import '../services/firestore_service.dart';
+import '../theme/app_theme.dart';
 import 'items_screen.dart';
 import 'profiles_screen.dart';
 import 'transactions_screen.dart';
@@ -236,7 +237,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           _SettingsTile(
             icon: Icons.logout,
             title: 'Odhlásit se',
-            titleColor: Colors.red,
+            titleColor: AppColors.danger,
             onTap: () async {
               final confirmed = await showDialog<bool>(
                 context: context,
@@ -250,7 +251,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     TextButton(
                       onPressed: () => Navigator.pop(ctx, true),
                       style:
-                          TextButton.styleFrom(foregroundColor: Colors.red),
+                          TextButton.styleFrom(foregroundColor: AppColors.danger),
                       child: const Text('Odhlásit'),
                     ),
                   ],

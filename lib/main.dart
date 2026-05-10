@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'firebase_options.dart';
 import 'models/payment_profile.dart';
@@ -10,6 +9,7 @@ import 'services/firestore_service.dart';
 import 'screens/auth_screen.dart';
 import 'screens/main_screen.dart';
 import 'screens/onboarding_screen.dart';
+import 'theme/app_theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -22,34 +22,13 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final base = ThemeData.light();
-    final baseText = base.textTheme;
-    final textTheme = GoogleFonts.jetBrainsMonoTextTheme(baseText).copyWith(
-      displayLarge: GoogleFonts.spaceGrotesk(textStyle: baseText.displayLarge),
-      displayMedium: GoogleFonts.spaceGrotesk(textStyle: baseText.displayMedium),
-      displaySmall: GoogleFonts.spaceGrotesk(textStyle: baseText.displaySmall),
-      headlineLarge: GoogleFonts.spaceGrotesk(textStyle: baseText.headlineLarge),
-      headlineMedium:
-          GoogleFonts.spaceGrotesk(textStyle: baseText.headlineMedium),
-      headlineSmall: GoogleFonts.spaceGrotesk(textStyle: baseText.headlineSmall),
-      titleLarge: GoogleFonts.spaceGrotesk(textStyle: baseText.titleLarge),
-    );
-
     return Provider<AuthService>(
       create: (_) => AuthService(),
       child: MaterialApp(
         title: 'QR kódy na platby',
         debugShowCheckedModeBanner: false,
         themeMode: ThemeMode.light,
-        theme: ThemeData(
-          colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
-          useMaterial3: true,
-          textTheme: textTheme,
-          inputDecorationTheme: InputDecorationTheme(
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
-          ),
-        ),
+        theme: buildAppTheme(),
         home: const _AuthWrapper(),
       ),
     );
