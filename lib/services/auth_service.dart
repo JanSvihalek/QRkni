@@ -45,7 +45,20 @@ class AuthService {
   // Přihlášení přes Google
   Future<UserCredential?> signInWithGoogle() async {
     final googleUser = await _googleSignIn.signIn();
-    if (googleUser == null) return null; // uživatel zrušil
+    return _signInWithGoogleAccount(googleUser);
+  }
+
+  /// Pokus o tiché obnovení Google session bez UI — vrátí null, pokud session
+  /// vypršela a vyžaduje interaktivní login.
+  Future<UserCredential?> signInWithGoogleSilent() async {
+    final googleUser = await _googleSignIn.signInSilently();
+    return _signInWithGoogleAccount(googleUser);
+  }
+
+  Future<UserCredential?> _signInWithGoogleAccount(
+    GoogleSignInAccount? googleUser,
+  ) async {
+    if (googleUser == null) return null;
     final googleAuth = await googleUser.authentication;
     final credential = GoogleAuthProvider.credential(
       accessToken: googleAuth.accessToken,

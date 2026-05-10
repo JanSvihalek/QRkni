@@ -80,19 +80,46 @@ class _AuthScreenState extends State<AuthScreen> {
     if (_isLoading) return;
     final ok = await _biometric.authenticate(reason: 'Přihlaste se do QRkni');
     if (!ok || !mounted) return;
-    final creds = await _credentials.read();
-    if (creds == null || !mounted) return;
+
+    final method = await _credentials.getAuthMethod();
+    if (method == null || !mounted) return;
+
     setState(() {
-      _emailController.text = creds.email;
-      _passwordController.text = creds.password;
       _isLoading = true;
       _errorMessage = null;
     });
+
     try {
-      await context.read<AuthService>().signIn(
-            email: creds.email,
-            password: creds.password,
-          );
+      if (method == AuthMethod.google) {
+        final cred =
+            await context.read<AuthService>().signInWithGoogleSilent();
+        if (cred == null && mounted) {
+          // Silent session vypršela — uživatel musí Google login provést znovu.
+          setState(() {
+            _errorMessage =
+                'Přihlášení přes Google vypršelo, použij tlačítko Google.';
+            _isLoading = false;
+          });
+        }
+      } else {
+        final creds = await _credentials.read();
+        if (creds == null) {
+          setState(() {
+            _errorMessage = 'Uložené přihlašovací údaje nebyly nalezeny.';
+            _isLoading = false;
+          });
+          return;
+        }
+        if (!mounted) return;
+        setState(() {
+          _emailController.text = creds.email;
+          _passwordController.text = creds.password;
+        });
+        await context.read<AuthService>().signIn(
+              email: creds.email,
+              password: creds.password,
+            );
+      }
     } on FirebaseAuthException catch (e) {
       if (!mounted) return;
       if (e.code == 'wrong-password' || e.code == 'invalid-credential') {
@@ -169,7 +196,12 @@ class _AuthScreenState extends State<AuthScreen> {
       _errorMessage = null;
     });
     try {
-      await context.read<AuthService>().signInWithGoogle();
+      final credential = await context.read<AuthService>().signInWithGoogle();
+      // Pokud uživatel dialog nezrušil a biometrika je k dispozici, zapamatuj
+      // si, že příště lze Face ID použít pro silent Google sign-in.
+      if (credential != null && _biometricAvailable) {
+        unawaited(_credentials.markGoogleAuth());
+      }
     } on FirebaseAuthException catch (e) {
       if (mounted) {
         setState(() => _errorMessage = _getErrorMessage(e.code));
