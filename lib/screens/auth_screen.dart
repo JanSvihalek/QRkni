@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io' show Platform;
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -35,6 +36,25 @@ class _AuthScreenState extends State<AuthScreen> {
   bool _biometricAvailable = false;
   bool _passwordVisible = false;
   String? _errorMessage;
+
+  bool get _isIOS => Platform.isIOS;
+  String get _biometricLabel => _isIOS ? 'Face ID' : 'Přihlášení biometricky';
+  String get _biometricHintMessage => _isIOS
+      ? 'Nejdřív se přihlas e-mailem — pak budeš moct používat Face ID.'
+      : 'Nejdřív se přihlas e-mailem — pak budeš moct používat biometriku.';
+
+  Widget _buildBiometricIcon({double size = 22, Color color = _primaryBlue}) {
+    if (_isIOS) {
+      return Image.asset(
+        'assets/images/faceid.png',
+        width: size,
+        height: size,
+        color: color,
+        colorBlendMode: BlendMode.srcIn,
+      );
+    }
+    return Icon(Icons.fingerprint, color: color, size: size);
+  }
 
   @override
   void initState() {
@@ -493,26 +513,20 @@ class _AuthScreenState extends State<AuthScreen> {
                                 _tryBiometricLogin();
                               } else {
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text(
-                                      'Nejdřív se přihlas e-mailem — pak budeš moct používat Face ID.',
-                                    ),
+                                  SnackBar(
+                                    content: Text(_biometricHintMessage),
                                   ),
                                 );
                               }
                             },
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
-                        children: const [
-                          Icon(
-                            Icons.fingerprint,
-                            color: _primaryBlue,
-                            size: 22,
-                          ),
-                          SizedBox(width: 8),
+                        children: [
+                          _buildBiometricIcon(),
+                          const SizedBox(width: 8),
                           Text(
-                            'Přihlášení biometricky',
-                            style: TextStyle(
+                            _biometricLabel,
+                            style: const TextStyle(
                               fontWeight: FontWeight.w600,
                               color: _headingColor,
                             ),
