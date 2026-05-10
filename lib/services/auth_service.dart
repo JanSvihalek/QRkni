@@ -76,10 +76,21 @@ class AuthService {
     return userCredential;
   }
 
-  // Odhlášení
+  // Odhlášení — Firebase session zruší, ale Google session ponechá zacachovanou,
+  // aby `signInWithGoogleSilent()` po Face ID dokázal session obnovit. Pro plné
+  // odpojení Google účtu volej `disconnectGoogle()`.
   Future<void> signOut() async {
-    await _googleSignIn.signOut();
     await _auth.signOut();
+  }
+
+  /// Plně odpojí Google účet od aplikace (revokuje OAuth grant). Používej
+  /// pouze, když chce uživatel skutečně přepnout / zapomenout Google účet.
+  Future<void> disconnectGoogle() async {
+    try {
+      await _googleSignIn.disconnect();
+    } catch (_) {
+      await _googleSignIn.signOut();
+    }
   }
 
   // Reset hesla

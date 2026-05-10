@@ -45,15 +45,6 @@ class _AuthScreenState extends State<AuthScreen> {
       : 'Nejdřív se přihlas e-mailem — pak budeš moct používat biometriku.';
 
   Widget _buildBiometricIcon({double size = 22, Color color = _primaryBlue}) {
-    if (_isIOS) {
-      return Image.asset(
-        'assets/images/faceid.png',
-        width: size,
-        height: size,
-        color: color,
-        colorBlendMode: BlendMode.srcIn,
-      );
-    }
     return Icon(Icons.fingerprint, color: color, size: size);
   }
 
