@@ -25,7 +25,7 @@ class MyApp extends StatelessWidget {
     return Provider<AuthService>(
       create: (_) => AuthService(),
       child: MaterialApp(
-        title: 'QR kódy na platby',
+        title: 'QRkni',
         debugShowCheckedModeBanner: false,
         themeMode: ThemeMode.light,
         theme: buildAppTheme(),
@@ -45,7 +45,9 @@ class _AuthWrapper extends StatelessWidget {
       stream: authService.authStateChanges,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Scaffold(body: Center(child: CircularProgressIndicator()));
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
         }
         if (!snapshot.hasData) return const AuthScreen();
         return _ProfileChecker(userId: snapshot.data!.uid);
@@ -64,7 +66,9 @@ class _ProfileChecker extends StatelessWidget {
       stream: FirestoreService().profilesStream(userId),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Scaffold(body: Center(child: CircularProgressIndicator()));
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
         }
         final profiles = snapshot.data ?? [];
         if (profiles.isEmpty) {

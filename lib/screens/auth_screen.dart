@@ -1,6 +1,6 @@
 import 'dart:async';
-import 'dart:io' show Platform;
 
+import 'package:flutter/foundation.dart' show defaultTargetPlatform, kIsWeb, TargetPlatform;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
@@ -38,7 +38,7 @@ class _AuthScreenState extends State<AuthScreen> {
   bool _passwordVisible = false;
   String? _errorMessage;
 
-  bool get _isIOS => Platform.isIOS;
+  bool get _isIOS => !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS;
   String get _biometricLabel => _isIOS ? 'Face ID' : 'Biometrika';
   String get _biometricHintMessage => _isIOS
       ? 'Nejdřív se přihlas e-mailem — pak budeš moct používat Face ID.'
