@@ -85,10 +85,18 @@ class _AuthScreenState extends State<AuthScreen> {
         final cred =
             await context.read<AuthService>().signInWithGoogleSilent();
         if (cred == null && mounted) {
-          // Silent session vypršela — uživatel musí Google login provést znovu.
           setState(() {
             _errorMessage =
                 'Přihlášení přes Google vypršelo, použij tlačítko Google.';
+            _isLoading = false;
+          });
+        }
+      } else if (method == AuthMethod.apple) {
+        final cred = await context.read<AuthService>().signInWithApple();
+        if (cred == null && mounted) {
+          setState(() {
+            _errorMessage =
+                'Přihlášení přes Apple se nezdařilo, použij tlačítko Apple.';
             _isLoading = false;
           });
         }
@@ -188,8 +196,6 @@ class _AuthScreenState extends State<AuthScreen> {
     });
     try {
       final credential = await context.read<AuthService>().signInWithGoogle();
-      // Pokud uživatel dialog nezrušil a biometrika je k dispozici, zapamatuj
-      // si, že příště lze Face ID použít pro silent Google sign-in.
       if (credential != null && _biometricAvailable) {
         unawaited(_credentials.markGoogleAuth());
       }
@@ -200,6 +206,30 @@ class _AuthScreenState extends State<AuthScreen> {
     } catch (e) {
       if (mounted) {
         setState(() => _errorMessage = 'Přihlášení přes Google se nezdařilo.');
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _signInWithApple() async {
+    if (_isLoading) return;
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+    try {
+      final credential = await context.read<AuthService>().signInWithApple();
+      if (credential != null && _biometricAvailable) {
+        unawaited(_credentials.markAppleAuth());
+      }
+    } on FirebaseAuthException catch (e) {
+      if (mounted) {
+        setState(() => _errorMessage = _getErrorMessage(e.code));
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _errorMessage = 'Přihlášení přes Apple se nezdařilo.');
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -341,6 +371,10 @@ class _AuthScreenState extends State<AuthScreen> {
       width: 22,
       height: 22,
     );
+  }
+
+  Widget _appleIcon() {
+    return const Icon(Icons.apple, size: 26, color: Colors.black);
   }
 
   @override
@@ -545,40 +579,56 @@ class _AuthScreenState extends State<AuthScreen> {
                     onPressed: _isLoading ? null : _signInWithGoogle,
                     child: _googleIcon(),
                   ),
-                  if (showFaceId) ...[
+                  if (_isIOS) ...[
                     const SizedBox(width: 12),
                     _socialButton(
-                      onPressed: _isLoading
-                          ? null
-                          : () {
-                              if (_hasStoredCredentials) {
-                                _tryBiometricLogin();
-                              } else {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text(_biometricHintMessage),
-                                  ),
-                                );
-                              }
-                            },
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          _buildBiometricIcon(),
-                          const SizedBox(width: 8),
-                          Text(
-                            _biometricLabel,
-                            style: const TextStyle(
-                              fontWeight: FontWeight.w600,
-                              color: _headingColor,
-                            ),
-                          ),
-                        ],
-                      ),
+                      onPressed: _isLoading ? null : _signInWithApple,
+                      child: _appleIcon(),
                     ),
                   ],
                 ],
               ),
+              if (showFaceId) ...[
+                const SizedBox(height: 12),
+                SizedBox(
+                  width: double.infinity,
+                  height: 56,
+                  child: OutlinedButton(
+                    onPressed: _isLoading
+                        ? null
+                        : () {
+                            if (_hasStoredCredentials) {
+                              _tryBiometricLogin();
+                            } else {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text(_biometricHintMessage)),
+                              );
+                            }
+                          },
+                    style: OutlinedButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      side: const BorderSide(color: _borderColor),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        _buildBiometricIcon(),
+                        const SizedBox(width: 8),
+                        Text(
+                          _biometricLabel,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w600,
+                            color: _headingColor,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
 
               const SizedBox(height: 32),
               Center(

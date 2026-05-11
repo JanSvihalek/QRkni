@@ -63,8 +63,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Future<void> _setBiometricEnabled(bool value) async {
     if (value) {
-      final ok = await BiometricService()
-          .authenticate(reason: 'Potvrďte aktivaci biometriky');
+      final ok = await BiometricService().authenticate(
+        reason: 'Potvrďte aktivaci biometriky',
+      );
       if (!ok) return;
     } else {
       await CredentialStorage().clear();
@@ -101,9 +102,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.surface,
-      appBar: AppBar(
-        title: const Text('Nastavení'),
-      ),
+      appBar: AppBar(title: const Text('Nastavení')),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
         children: [
@@ -217,7 +216,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
                 SizedBox(height: 4),
                 Text(
-                  'v2.0.0',
+                  'v2.3.0',
                   style: TextStyle(
                     fontSize: 11,
                     color: AppColors.label,
@@ -372,8 +371,7 @@ class _TileGroup extends StatelessWidget {
         children: [
           for (int i = 0; i < children.length; i++) ...[
             children[i],
-            if (i < children.length - 1)
-              const Divider(height: 1, indent: 60),
+            if (i < children.length - 1) const Divider(height: 1, indent: 60),
           ],
         ],
       ),
@@ -487,10 +485,7 @@ class _SwitchTile extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 8),
-          Switch(
-            value: value,
-            onChanged: onChanged,
-          ),
+          Switch(value: value, onChanged: onChanged),
         ],
       ),
     );

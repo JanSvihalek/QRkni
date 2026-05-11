@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import 'firestore_service.dart';
 
 class AuthService {
@@ -70,6 +71,29 @@ class AuthService {
       await _firestoreService.saveUser(
         uid: user.uid,
         email: user.email ?? '',
+        isNewUser: userCredential.additionalUserInfo?.isNewUser ?? false,
+      );
+    }
+    return userCredential;
+  }
+
+  Future<UserCredential?> signInWithApple() async {
+    final appleCredential = await SignInWithApple.getAppleIDCredential(
+      scopes: [
+        AppleIDAuthorizationScopes.email,
+        AppleIDAuthorizationScopes.fullName,
+      ],
+    );
+    final oauthCredential = OAuthProvider('apple.com').credential(
+      idToken: appleCredential.identityToken,
+      accessToken: appleCredential.authorizationCode,
+    );
+    final userCredential = await _auth.signInWithCredential(oauthCredential);
+    final user = userCredential.user;
+    if (user != null) {
+      await _firestoreService.saveUser(
+        uid: user.uid,
+        email: user.email ?? appleCredential.email ?? '',
         isNewUser: userCredential.additionalUserInfo?.isNewUser ?? false,
       );
     }

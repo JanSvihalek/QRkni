@@ -1,6 +1,6 @@
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
-enum AuthMethod { email, google }
+enum AuthMethod { email, google, apple }
 
 class CredentialStorage {
   static const _emailKey = 'qrkni_email';
@@ -22,7 +22,12 @@ class CredentialStorage {
 
   Future<void> markGoogleAuth() async {
     await _storage.write(key: _authMethodKey, value: AuthMethod.google.name);
-    // Google nemá heslo — pro jistotu vyčistíme případné staré email creds.
+    await _storage.delete(key: _emailKey);
+    await _storage.delete(key: _passwordKey);
+  }
+
+  Future<void> markAppleAuth() async {
+    await _storage.write(key: _authMethodKey, value: AuthMethod.apple.name);
     await _storage.delete(key: _emailKey);
     await _storage.delete(key: _passwordKey);
   }
