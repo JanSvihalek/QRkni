@@ -17,20 +17,18 @@ class _MainScreenState extends State<MainScreen> {
     HomeScreen(userId: widget.userId),
     SettingsScreen(userId: widget.userId),
   ];
-
+  //Spodní lišta s přepínáním mezi obrazovkami
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Column(
         children: [
           Expanded(
-            child: IndexedStack(
-              index: _currentIndex,
-              children: _screens,
-            ),
+            child: IndexedStack(index: _currentIndex, children: _screens),
           ),
           NavigationBar(
             selectedIndex: _currentIndex,
+            height: 60,
             onDestinationSelected: (i) => setState(() => _currentIndex = i),
             destinations: const [
               NavigationDestination(
