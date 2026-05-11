@@ -39,7 +39,7 @@ class _AuthScreenState extends State<AuthScreen> {
   String? _errorMessage;
 
   bool get _isIOS => Platform.isIOS;
-  String get _biometricLabel => _isIOS ? 'FaceID' : 'Přihlášení biometricky';
+  String get _biometricLabel => _isIOS ? 'Face ID' : 'Biometrika';
   String get _biometricHintMessage => _isIOS
       ? 'Nejdřív se přihlas e-mailem — pak budeš moct používat Face ID.'
       : 'Nejdřív se přihlas e-mailem — pak budeš moct používat biometriku.';
@@ -586,49 +586,41 @@ class _AuthScreenState extends State<AuthScreen> {
                       child: _appleIcon(),
                     ),
                   ],
-                ],
-              ),
-              if (showFaceId) ...[
-                const SizedBox(height: 12),
-                SizedBox(
-                  width: double.infinity,
-                  height: 56,
-                  child: OutlinedButton(
-                    onPressed: _isLoading
-                        ? null
-                        : () {
-                            if (_hasStoredCredentials) {
-                              _tryBiometricLogin();
-                            } else {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text(_biometricHintMessage)),
-                              );
-                            }
-                          },
-                    style: OutlinedButton.styleFrom(
-                      backgroundColor: Colors.white,
-                      side: const BorderSide(color: _borderColor),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14),
+                  if (showFaceId) ...[
+                    const SizedBox(width: 12),
+                    _socialButton(
+                      onPressed: _isLoading
+                          ? null
+                          : () {
+                              if (_hasStoredCredentials) {
+                                _tryBiometricLogin();
+                              } else {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(_biometricHintMessage),
+                                  ),
+                                );
+                              }
+                            },
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          _buildBiometricIcon(size: 20),
+                          const SizedBox(height: 2),
+                          Text(
+                            _biometricLabel,
+                            style: const TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                              color: _headingColor,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        _buildBiometricIcon(),
-                        const SizedBox(width: 8),
-                        Text(
-                          _biometricLabel,
-                          style: const TextStyle(
-                            fontWeight: FontWeight.w600,
-                            color: _headingColor,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
+                  ],
+                ],
+              ),
 
               const SizedBox(height: 32),
               Center(
