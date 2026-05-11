@@ -199,6 +199,11 @@ class _AuthScreenState extends State<AuthScreen> {
       if (credential != null && _biometricAvailable) {
         unawaited(_credentials.markGoogleAuth());
       }
+    } on AccountExistsException catch (e) {
+      if (mounted) {
+        setState(() => _isLoading = false);
+        await _showLinkingDialog(e);
+      }
     } on FirebaseAuthException catch (e) {
       if (mounted) {
         setState(() => _errorMessage = _getErrorMessage(e.code));
@@ -223,6 +228,11 @@ class _AuthScreenState extends State<AuthScreen> {
       if (credential != null && _biometricAvailable) {
         unawaited(_credentials.markAppleAuth());
       }
+    } on AccountExistsException catch (e) {
+      if (mounted) {
+        setState(() => _isLoading = false);
+        await _showLinkingDialog(e);
+      }
     } on FirebaseAuthException catch (e) {
       if (mounted) {
         setState(() => _errorMessage = _getErrorMessage(e.code));
@@ -233,6 +243,106 @@ class _AuthScreenState extends State<AuthScreen> {
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _showLinkingDialog(AccountExistsException e) async {
+    final passwordController = TextEditingController();
+    try {
+      await showDialog<void>(
+        context: context,
+        barrierDismissible: false,
+        builder: (ctx) {
+          var isLinking = false;
+          String? dialogError;
+          final providerName =
+              e.pendingCredential.providerId == 'apple.com' ? 'Apple' : 'Google';
+
+          return StatefulBuilder(
+            builder: (ctx, setDialogState) => AlertDialog(
+              title: const Text('Účet již existuje'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'E-mail ${e.email} je již registrován heslem. '
+                    'Zadej heslo pro propojení přihlášení přes $providerName.',
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: passwordController,
+                    decoration: const InputDecoration(labelText: 'Heslo'),
+                    obscureText: true,
+                    autofocus: true,
+                    enabled: !isLinking,
+                  ),
+                  if (dialogError != null) ...[
+                    const SizedBox(height: 8),
+                    Text(
+                      dialogError!,
+                      style:
+                          TextStyle(color: Colors.red.shade700, fontSize: 13),
+                    ),
+                  ],
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: isLinking ? null : () => Navigator.pop(ctx),
+                  child: const Text('Zrušit'),
+                ),
+                FilledButton(
+                  onPressed: isLinking
+                      ? null
+                      : () async {
+                          setDialogState(() {
+                            isLinking = true;
+                            dialogError = null;
+                          });
+                          try {
+                            await ctx.read<AuthService>().signInAndLink(
+                                  email: e.email,
+                                  password: passwordController.text,
+                                  pendingCredential: e.pendingCredential,
+                                );
+                            if (_biometricAvailable) {
+                              if (e.pendingCredential.providerId ==
+                                  'apple.com') {
+                                unawaited(_credentials.markAppleAuth());
+                              } else {
+                                unawaited(_credentials.markGoogleAuth());
+                              }
+                            }
+                            if (ctx.mounted) Navigator.pop(ctx);
+                          } on FirebaseAuthException catch (err) {
+                            setDialogState(() {
+                              isLinking = false;
+                              dialogError = _getErrorMessage(err.code);
+                            });
+                          } catch (_) {
+                            setDialogState(() {
+                              isLinking = false;
+                              dialogError = 'Propojení se nezdařilo.';
+                            });
+                          }
+                        },
+                  child: isLinking
+                      ? const SizedBox(
+                          height: 18,
+                          width: 18,
+                          child: CircularProgressIndicator(
+                              strokeWidth: 2, color: Colors.white),
+                        )
+                      : const Text('Propojit a přihlásit'),
+                ),
+              ],
+            ),
+          );
+        },
+      );
+    } finally {
+      passwordController.dispose();
     }
   }
 
@@ -300,6 +410,8 @@ class _AuthScreenState extends State<AuthScreen> {
         return 'Heslo je příliš slabé.';
       case 'invalid-email':
         return 'Neplatná e-mailová adresa.';
+      case 'account-exists-with-different-credential':
+        return 'Tento e-mail je spojen s jiným způsobem přihlášení.';
       default:
         return 'Ověřování se nezdařilo: $code';
     }

@@ -3,6 +3,18 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import 'firestore_service.dart';
 
+/// Vyhazována, když e-mail již existuje pod jiným poskytovatelem.
+/// Obsahuje čekající credential pro následné propojení účtů.
+class AccountExistsException implements Exception {
+  final String email;
+  final AuthCredential pendingCredential;
+
+  const AccountExistsException({
+    required this.email,
+    required this.pendingCredential,
+  });
+}
+
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final GoogleSignIn _googleSignIn = GoogleSignIn();
@@ -65,16 +77,26 @@ class AuthService {
       accessToken: googleAuth.accessToken,
       idToken: googleAuth.idToken,
     );
-    final userCredential = await _auth.signInWithCredential(credential);
-    final user = userCredential.user;
-    if (user != null) {
-      await _firestoreService.saveUser(
-        uid: user.uid,
-        email: user.email ?? '',
-        isNewUser: userCredential.additionalUserInfo?.isNewUser ?? false,
-      );
+    try {
+      final userCredential = await _auth.signInWithCredential(credential);
+      final user = userCredential.user;
+      if (user != null) {
+        await _firestoreService.saveUser(
+          uid: user.uid,
+          email: user.email ?? '',
+          isNewUser: userCredential.additionalUserInfo?.isNewUser ?? false,
+        );
+      }
+      return userCredential;
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'account-exists-with-different-credential') {
+        throw AccountExistsException(
+          email: e.email ?? googleUser.email,
+          pendingCredential: credential,
+        );
+      }
+      rethrow;
     }
-    return userCredential;
   }
 
   Future<UserCredential?> signInWithApple() async {
@@ -88,16 +110,41 @@ class AuthService {
       idToken: appleCredential.identityToken,
       accessToken: appleCredential.authorizationCode,
     );
-    final userCredential = await _auth.signInWithCredential(oauthCredential);
-    final user = userCredential.user;
-    if (user != null) {
-      await _firestoreService.saveUser(
-        uid: user.uid,
-        email: user.email ?? appleCredential.email ?? '',
-        isNewUser: userCredential.additionalUserInfo?.isNewUser ?? false,
-      );
+    try {
+      final userCredential = await _auth.signInWithCredential(oauthCredential);
+      final user = userCredential.user;
+      if (user != null) {
+        await _firestoreService.saveUser(
+          uid: user.uid,
+          email: user.email ?? appleCredential.email ?? '',
+          isNewUser: userCredential.additionalUserInfo?.isNewUser ?? false,
+        );
+      }
+      return userCredential;
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'account-exists-with-different-credential') {
+        throw AccountExistsException(
+          email: e.email ?? appleCredential.email ?? '',
+          pendingCredential: oauthCredential,
+        );
+      }
+      rethrow;
     }
-    return userCredential;
+  }
+
+  /// Přihlásí e-mailem a heslem a okamžitě propojí čekající OAuth credential.
+  /// Používá se po zachycení [AccountExistsException].
+  Future<void> signInAndLink({
+    required String email,
+    required String password,
+    required AuthCredential pendingCredential,
+  }) async {
+    final cred = await _auth.signInWithEmailAndPassword(
+      email: email,
+      password: password,
+    );
+    await cred.user!.linkWithCredential(pendingCredential);
+    await _firestoreService.saveUser(uid: cred.user!.uid, email: email);
   }
 
   // Odhlášení — Firebase session zruší, ale Google session ponechá zacachovanou,
