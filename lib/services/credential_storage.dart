@@ -65,4 +65,41 @@ class CredentialStorage {
     }
     return true; // Google — silent sign-in se pokusí obnovit session
   }
+
+  // ── Worker device ────────────────────────────────────────────────────────
+
+  static const _workerDeviceKey = 'qrkni_worker_device';
+  static const _workerOwnerIdKey = 'qrkni_worker_owner_id';
+  static const _workerNameKey = 'qrkni_worker_name';
+  static const _workerPinHashKey = 'qrkni_worker_pin_hash';
+
+  Future<bool> isWorkerDevice() async =>
+      await _storage.read(key: _workerDeviceKey) == 'true';
+
+  Future<String?> getWorkerOwnerId() =>
+      _storage.read(key: _workerOwnerIdKey);
+
+  Future<String?> getWorkerName() =>
+      _storage.read(key: _workerNameKey);
+
+  Future<String?> getWorkerPinHash() =>
+      _storage.read(key: _workerPinHashKey);
+
+  Future<void> pairAsWorkerDevice({
+    required String ownerUserId,
+    required String workerName,
+    required String pinHash,
+  }) async {
+    await _storage.write(key: _workerDeviceKey, value: 'true');
+    await _storage.write(key: _workerOwnerIdKey, value: ownerUserId);
+    await _storage.write(key: _workerNameKey, value: workerName);
+    await _storage.write(key: _workerPinHashKey, value: pinHash);
+  }
+
+  Future<void> unpairWorkerDevice() async {
+    await _storage.delete(key: _workerDeviceKey);
+    await _storage.delete(key: _workerOwnerIdKey);
+    await _storage.delete(key: _workerNameKey);
+    await _storage.delete(key: _workerPinHashKey);
+  }
 }

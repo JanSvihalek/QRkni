@@ -10,9 +10,11 @@ import '../services/biometric_service.dart';
 import '../services/credential_storage.dart';
 import '../theme/app_theme.dart';
 import '../widgets/logo_scan_brackets.dart';
+import 'worker_register_screen.dart';
 
 class AuthScreen extends StatefulWidget {
-  const AuthScreen({super.key});
+  final VoidCallback? onWorkerRegistered;
+  const AuthScreen({super.key, this.onWorkerRegistered});
 
   @override
   State<AuthScreen> createState() => _AuthScreenState();
@@ -766,6 +768,27 @@ class _AuthScreenState extends State<AuthScreen> {
                   ],
                 ),
               ),
+              if (widget.onWorkerRegistered != null) ...[
+                const SizedBox(height: 20),
+                Center(
+                  child: TextButton(
+                    onPressed: _isLoading
+                        ? null
+                        : () => Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => WorkerRegisterScreen(
+                                  onRegistered: widget.onWorkerRegistered!,
+                                ),
+                              ),
+                            ),
+                    child: const Text(
+                      'Jsem brigádník',
+                      style: TextStyle(color: _labelColor, fontSize: 13),
+                    ),
+                  ),
+                ),
+              ],
             ],
           ),
         ),

@@ -5,10 +5,12 @@ import 'package:provider/provider.dart';
 import 'firebase_options.dart';
 import 'models/payment_profile.dart';
 import 'services/auth_service.dart';
+import 'services/credential_storage.dart';
 import 'services/firestore_service.dart';
 import 'screens/auth_screen.dart';
 import 'screens/main_screen.dart';
 import 'screens/onboarding_screen.dart';
+import 'screens/worker_login_screen.dart';
 import 'theme/app_theme.dart';
 
 void main() async {
@@ -29,17 +31,69 @@ class MyApp extends StatelessWidget {
         debugShowCheckedModeBanner: false,
         themeMode: ThemeMode.light,
         theme: buildAppTheme(),
-        home: const _AuthWrapper(),
+        home: const _AppEntry(),
       ),
     );
   }
 }
 
-class _AuthWrapper extends StatelessWidget {
-  const _AuthWrapper();
+class _AppEntry extends StatefulWidget {
+  const _AppEntry();
+
+  @override
+  State<_AppEntry> createState() => _AppEntryState();
+}
+
+class _AppEntryState extends State<_AppEntry> {
+  bool? _isWorkerDevice;
+  String? _workerOwnerId;
+  String? _workerName;
+  String? _workerPinHash;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkWorkerDevice();
+  }
+
+  Future<void> _checkWorkerDevice() async {
+    final storage = CredentialStorage();
+    final isWorker = await storage.isWorkerDevice();
+    if (isWorker) {
+      final ownerId = await storage.getWorkerOwnerId();
+      final name = await storage.getWorkerName();
+      final pinHash = await storage.getWorkerPinHash();
+      if (mounted) {
+        setState(() {
+          _isWorkerDevice = true;
+          _workerOwnerId = ownerId;
+          _workerName = name;
+          _workerPinHash = pinHash;
+        });
+      }
+    } else {
+      if (mounted) setState(() => _isWorkerDevice = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    if (_isWorkerDevice == null) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
+    if (_isWorkerDevice! &&
+        _workerOwnerId != null &&
+        _workerName != null &&
+        _workerPinHash != null) {
+      return WorkerLoginScreen(
+        ownerUserId: _workerOwnerId!,
+        workerName: _workerName!,
+        pinHash: _workerPinHash!,
+        onUnpaired: _checkWorkerDevice,
+      );
+    }
+
     final authService = context.read<AuthService>();
     return StreamBuilder<User?>(
       stream: authService.authStateChanges,
@@ -49,7 +103,9 @@ class _AuthWrapper extends StatelessWidget {
             body: Center(child: CircularProgressIndicator()),
           );
         }
-        if (!snapshot.hasData) return const AuthScreen();
+        if (!snapshot.hasData) {
+          return AuthScreen(onWorkerRegistered: _checkWorkerDevice);
+        }
         return _ProfileChecker(userId: snapshot.data!.uid);
       },
     );

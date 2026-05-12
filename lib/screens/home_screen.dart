@@ -16,7 +16,8 @@ class _CartEntry {
 
 class HomeScreen extends StatefulWidget {
   final String userId;
-  const HomeScreen({super.key, required this.userId});
+  final bool isWorkerMode;
+  const HomeScreen({super.key, required this.userId, this.isWorkerMode = false});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -163,19 +164,20 @@ class _HomeScreenState extends State<HomeScreen> {
                       style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                     ),
                     const Spacer(),
-                    TextButton.icon(
-                      onPressed: () {
-                        Navigator.pop(ctx);
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => ItemsScreen(userId: widget.userId),
-                          ),
-                        );
-                      },
-                      icon: const Icon(Icons.settings_outlined, size: 18),
-                      label: const Text('Spravovat'),
-                    ),
+                    if (!widget.isWorkerMode)
+                      TextButton.icon(
+                        onPressed: () {
+                          Navigator.pop(ctx);
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => ItemsScreen(userId: widget.userId),
+                            ),
+                          );
+                        },
+                        icon: const Icon(Icons.settings_outlined, size: 18),
+                        label: const Text('Spravovat'),
+                      ),
                   ],
                 ),
               ),
@@ -327,19 +329,21 @@ class _HomeScreenState extends State<HomeScreen> {
                   Navigator.pop(ctx);
                 },
               )),
-          const Divider(),
-          ListTile(
-            leading: const Icon(Icons.tune),
-            title: const Text('Spravovat profily'),
-            onTap: () {
-              Navigator.pop(ctx);
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (_) => ProfilesScreen(userId: widget.userId)),
-              );
-            },
-          ),
+          if (!widget.isWorkerMode) ...[
+            const Divider(),
+            ListTile(
+              leading: const Icon(Icons.tune),
+              title: const Text('Spravovat profily'),
+              onTap: () {
+                Navigator.pop(ctx);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (_) => ProfilesScreen(userId: widget.userId)),
+                );
+              },
+            ),
+          ],
           const SizedBox(height: 8),
         ],
       ),

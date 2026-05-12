@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/payment_profile.dart';
 import '../models/payment_item.dart';
 import '../models/payment_transaction.dart';
+import '../models/worker.dart';
 
 class FirestoreService {
   final FirebaseFirestore _db = FirebaseFirestore.instanceFor(
@@ -112,5 +113,24 @@ class FirestoreService {
 
   Future<void> saveSettings(String uid, Map<String, dynamic> settings) async {
     await _userRef(uid).set({'settings': settings}, SetOptions(merge: true));
+  }
+
+  // ── Brigádníci ───────────────────────────────────────────────────────────
+
+  CollectionReference<Map<String, dynamic>> _workersRef(String uid) =>
+      _db.collection('users').doc(uid).collection('workers');
+
+  Stream<List<Worker>> workersStream(String uid) =>
+      _workersRef(uid)
+          .orderBy('createdAt', descending: false)
+          .snapshots()
+          .map((s) => s.docs.map(Worker.fromFirestore).toList());
+
+  Future<void> addWorker(String uid, Worker worker) async {
+    await _workersRef(uid).add(worker.toFirestore());
+  }
+
+  Future<void> deleteWorker(String uid, String workerId) async {
+    await _workersRef(uid).doc(workerId).delete();
   }
 }

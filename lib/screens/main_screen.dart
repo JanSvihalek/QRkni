@@ -6,7 +6,13 @@ import 'settings_screen.dart';
 
 class MainScreen extends StatefulWidget {
   final String userId;
-  const MainScreen({super.key, required this.userId});
+  final bool isWorkerMode;
+
+  const MainScreen({
+    super.key,
+    required this.userId,
+    this.isWorkerMode = false,
+  });
 
   @override
   State<MainScreen> createState() => _MainScreenState();
@@ -16,10 +22,10 @@ class _MainScreenState extends State<MainScreen> {
   int _currentIndex = 0;
 
   late final List<Widget> _screens = [
-    HomeScreen(userId: widget.userId),
-    SettingsScreen(userId: widget.userId),
+    HomeScreen(userId: widget.userId, isWorkerMode: widget.isWorkerMode),
+    if (!widget.isWorkerMode) SettingsScreen(userId: widget.userId),
   ];
-  //Spodní lišta s přepínáním mezi obrazovkami
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -41,18 +47,20 @@ class _MainScreenState extends State<MainScreen> {
                   backgroundColor: Colors.white.withValues(alpha: 0.85),
                   selectedIndex: _currentIndex,
                   height: 70,
-                  onDestinationSelected: (i) => setState(() => _currentIndex = i),
-                  destinations: const [
-                    NavigationDestination(
+                  onDestinationSelected: (i) =>
+                      setState(() => _currentIndex = i),
+                  destinations: [
+                    const NavigationDestination(
                       icon: Icon(Icons.qr_code_2_outlined),
                       selectedIcon: Icon(Icons.qr_code_2),
                       label: 'QR platby',
                     ),
-                    NavigationDestination(
-                      icon: Icon(Icons.settings_outlined),
-                      selectedIcon: Icon(Icons.settings),
-                      label: 'Nastavení',
-                    ),
+                    if (!widget.isWorkerMode)
+                      const NavigationDestination(
+                        icon: Icon(Icons.settings_outlined),
+                        selectedIcon: Icon(Icons.settings),
+                        label: 'Nastavení',
+                      ),
                   ],
                 ),
               ),

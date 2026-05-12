@@ -11,6 +11,7 @@ import '../widgets/logo_scan_brackets.dart';
 import 'items_screen.dart';
 import 'profiles_screen.dart';
 import 'transactions_screen.dart';
+import 'workers_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
   final String userId;
@@ -134,6 +135,26 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   context,
                   MaterialPageRoute(
                     builder: (_) => ItemsScreen(userId: widget.userId),
+                  ),
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 32),
+
+          // ── Brigádníci ───────────────────────────────────────────────────
+          const _SectionHeader('Brigádníci'),
+          _TileGroup(
+            children: [
+              _NavTile(
+                icon: Icons.people_outline,
+                title: 'Brigádníci',
+                subtitle: 'Správa přístupu a PIN kódů',
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => WorkersScreen(userId: widget.userId),
                   ),
                 ),
               ),
