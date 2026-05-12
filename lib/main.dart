@@ -63,6 +63,9 @@ class _AppEntryState extends State<_AppEntry> {
       final ownerId = await storage.getWorkerOwnerId();
       final name = await storage.getWorkerName();
       final pinHash = await storage.getWorkerPinHash();
+      if (FirebaseAuth.instance.currentUser == null) {
+        await FirebaseAuth.instance.signInAnonymously();
+      }
       if (mounted) {
         setState(() {
           _isWorkerDevice = true;
