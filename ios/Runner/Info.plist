@@ -37,6 +37,8 @@
 		</array>
 		<key>LSRequiresIPhoneOS</key>
 		<true/>
+		<key>NSCameraUsageDescription</key>
+		<string>Kamera je potřeba pro naskenování QR kódu při registraci zařízení brigádníka.</string>
 		<key>NSFaceIDUsageDescription</key>
 		<string>Použijte Face ID pro rychlé a bezpečné odemknutí aplikace.</string>
 		<key>UIApplicationSceneManifest</key>
