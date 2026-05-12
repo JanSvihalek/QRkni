@@ -1,0 +1,123 @@
+name: iOS Build
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Flutter pub get
+        run: flutter pub get
+
+      # ── Code signing ────────────────────────────────────────────────────────
+
+      - name: Import signing certificate
+        env:
+          CERT_BASE64: ${{ secrets.IOS_CERT_BASE64 }}
+          CERT_PASSWORD: ${{ secrets.IOS_CERT_PASSWORD }}
+          KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
+        run: |
+          CERT=$RUNNER_TEMP/cert.p12
+          KCH=$RUNNER_TEMP/app.keychain-db
+          echo -n "$CERT_BASE64" | base64 --decode -o $CERT
+          security create-keychain -p "$KEYCHAIN_PASSWORD" $KCH
+          security set-keychain-settings -lut 21600 $KCH
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" $KCH
+          security import $CERT -P "$CERT_PASSWORD" -A -t cert -f pkcs12 -k $KCH
+          security set-key-partition-list -S apple-tool:,apple: -k "$KEYCHAIN_PASSWORD" $KCH
+          security list-keychain -d user -s $KCH
+
+      - name: Install provisioning profile
+        id: profile
+        env:
+          PROFILE_BASE64: ${{ secrets.IOS_PROFILE_BASE64 }}
+        run: |
+          PP=$RUNNER_TEMP/profile.mobileprovision
+          echo -n "$PROFILE_BASE64" | base64 --decode -o $PP
+          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+          cp $PP ~/Library/MobileDevice/Provisioning\ Profiles/
+          PP_NAME=$(security cms -D -i "$PP" | /usr/libexec/PlistBuddy -c 'Print :Name' /dev/stdin)
+          echo "name=$PP_NAME" >> $GITHUB_OUTPUT
+
+      - name: Inject signing into xcconfig
+        env:
+          TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          PP_NAME: ${{ steps.profile.outputs.name }}
+        run: |
+          {
+            echo "CODE_SIGN_STYLE=Manual"
+            echo "DEVELOPMENT_TEAM=$TEAM_ID"
+            echo "CODE_SIGN_IDENTITY=Apple Distribution"
+            echo "PROVISIONING_PROFILE_SPECIFIER=$PP_NAME"
+          } >> ios/Flutter/Release.xcconfig
+
+      - name: Create ExportOptions.plist
+        env:
+          TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          PP_NAME: ${{ steps.profile.outputs.name }}
+        run: |
+          cat > ios/ExportOptions.plist << PLIST
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+              <key>method</key>
+              <string>app-store-connect</string>
+              <key>teamID</key>
+              <string>${TEAM_ID}</string>
+              <key>signingStyle</key>
+              <string>manual</string>
+              <key>signingCertificate</key>
+              <string>Apple Distribution</string>
+              <key>provisioningProfiles</key>
+              <dict>
+                  <key>com.jansvihalek.qrkni</key>
+                  <string>${PP_NAME}</string>
+              </dict>
+              <key>uploadBitcode</key>
+              <false/>
+              <key>uploadSymbols</key>
+              <true/>
+          </dict>
+          </plist>
+          PLIST
+
+      # ── Build ───────────────────────────────────────────────────────────────
+
+      - name: Build IPA
+        run: flutter build ipa --release --export-options-plist=ios/ExportOptions.plist
+
+      # ── Distribute ──────────────────────────────────────────────────────────
+
+      - name: Upload to TestFlight
+        if: ${{ secrets.ASC_KEY_ID != '' }}
+        env:
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          ASC_KEY_BASE64: ${{ secrets.ASC_KEY_BASE64 }}
+        run: |
+          KEY=$RUNNER_TEMP/AuthKey_${ASC_KEY_ID}.p8
+          echo -n "$ASC_KEY_BASE64" | base64 --decode -o $KEY
+          mkdir -p ~/.appstoreconnect/private_keys
+          cp $KEY ~/.appstoreconnect/private_keys/
+          IPA=$(find build/ios/ipa -name '*.ipa' | head -1)
+          xcrun altool --upload-app -t ios -f "$IPA" \
+            --apiKey "$ASC_KEY_ID" \
+            --apiIssuer "$ASC_ISSUER_ID"
+
+      - name: Save IPA as artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qrkni-${{ github.run_number }}
+          path: build/ios/ipa/*.ipa
+          retention-days: 14
