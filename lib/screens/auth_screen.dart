@@ -783,7 +783,7 @@ class _AuthScreenState extends State<AuthScreen> {
                               ),
                             ),
                     child: const Text(
-                      'Jsem brigádník',
+                      'Jsem zaměstnanec/brigádník',
                       style: TextStyle(color: _labelColor, fontSize: 13),
                     ),
                   ),

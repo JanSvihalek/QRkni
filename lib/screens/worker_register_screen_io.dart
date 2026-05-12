@@ -67,7 +67,7 @@ class _WorkerRegisterScreenState extends State<WorkerRegisterScreen> {
                 const LogoScanBrackets(size: 40, color: Colors.white),
                 const SizedBox(height: 16),
                 const Text(
-                  'Naskenujte QR kód\nbrigádníka od zaměstnavatele',
+                  'Naskenujte QR kód\nzaměstnance/brigádníka od zaměstnavatele',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     color: Colors.white,
@@ -92,7 +92,7 @@ class _WorkerRegisterScreenState extends State<WorkerRegisterScreen> {
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: const Text(
-                        'Požádejte zaměstnavatele, aby v aplikaci otevřel nastavení → Brigádníci a zobrazil váš QR kód.',
+                        'Požádejte zaměstnavatele, aby v aplikaci otevřel nastavení → Zaměstnanci/Brigádníci a zobrazil váš QR kód.',
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           color: Colors.white70,

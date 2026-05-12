@@ -73,7 +73,7 @@ class _WorkerLoginScreenState extends State<WorkerLoginScreen> {
       builder: (ctx) => AlertDialog(
         title: const Text('Odregistrovat zařízení?'),
         content: const Text(
-            'Toto zařízení přestane být spárováno s brigádnickým účtem. Pro opětovné použití bude nutné naskenovat QR kód znovu.'),
+            'Toto zařízení přestane být spárováno s účtem zaměstnance/brigádníka. Pro opětovné použití bude nutné naskenovat QR kód znovu.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
@@ -116,7 +116,7 @@ class _WorkerLoginScreenState extends State<WorkerLoginScreen> {
               ),
               const SizedBox(height: 4),
               const Text(
-                'Brigádnický přístup',
+                'Zaměstnanecký/Brigádnický přístup',
                 style: TextStyle(fontSize: 14, color: AppColors.muted),
               ),
               const SizedBox(height: 40),

@@ -143,13 +143,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
           const SizedBox(height: 32),
 
-          // ── Brigádníci ───────────────────────────────────────────────────
-          const _SectionHeader('Brigádníci'),
+          // ── Zaměstnanci ───────────────────────────────────────────────────
+          const _SectionHeader('Zaměstnanci/Brigádníci'),
           _TileGroup(
             children: [
               _NavTile(
                 icon: Icons.people_outline,
-                title: 'Brigádníci',
+                title: 'Zaměstnanci/Brigádníci',
                 subtitle: 'Správa přístupu a PIN kódů',
                 onTap: () => Navigator.push(
                   context,

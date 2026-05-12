@@ -12,7 +12,7 @@ class WorkersScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Brigádníci')),
+      appBar: AppBar(title: const Text('Zaměstnanci/Brigádníci')),
       body: StreamBuilder<List<Worker>>(
         stream: FirestoreService().workersStream(userId),
         builder: (context, snapshot) {
@@ -33,7 +33,7 @@ class WorkersScreen extends StatelessWidget {
               FilledButton.icon(
                 onPressed: () => _showAddWorkerDialog(context),
                 icon: const Icon(Icons.person_add_outlined),
-                label: const Text('Přidat brigádníka'),
+                label: const Text('Přidat zaměstnance/brigádníka'),
                 style: FilledButton.styleFrom(
                   minimumSize: const Size(double.infinity, 52),
                   shape: RoundedRectangleBorder(
@@ -58,7 +58,7 @@ class WorkersScreen extends StatelessWidget {
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setState) => AlertDialog(
-          title: const Text('Nový brigádník'),
+          title: const Text('Nový zaměstnanec/brigádník'),
           content: Form(
             key: formKey,
             child: Column(
@@ -165,7 +165,7 @@ class _InfoBanner extends StatelessWidget {
           SizedBox(width: 10),
           Expanded(
             child: Text(
-              'Brigádník stáhne aplikaci, zvolí „Jsem brigádník" a naskenuje svůj QR kód. Poté se přihlašuje PINem.',
+              'Brigádník stáhne aplikaci, zvolí „Jsem zaměstnanec/brigádník" a naskenuje svůj QR kód. Poté se přihlašuje PINem.',
               style: TextStyle(fontSize: 13, color: AppColors.ink700, height: 1.4),
             ),
           ),
@@ -184,7 +184,7 @@ class _EmptyState extends StatelessWidget {
         children: [
           Icon(Icons.people_outline, size: 48, color: Colors.grey.shade300),
           const SizedBox(height: 12),
-          const Text('Žádní brigádníci', style: TextStyle(color: AppColors.muted)),
+          const Text('Žádní zaměstnanci/brigádníci', style: TextStyle(color: AppColors.muted)),
         ],
       ),
     );
@@ -264,7 +264,7 @@ class _WorkerTile extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             const Text(
-              'Brigádník naskenuje tento kód při registraci zařízení.',
+              'Zaměstnanec/brigádník naskenuje tento kód při registraci zařízení.',
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 13, color: AppColors.muted),
             ),
@@ -286,7 +286,7 @@ class _WorkerTile extends StatelessWidget {
       builder: (ctx) => AlertDialog(
         title: Text('Odebrat ${worker.name}?'),
         content: const Text(
-            'Brigádník ztratí přístup po příštím restartu aplikace na svém zařízení.'),
+            'Zaměstnanec/brigádník ztratí přístup po příštím restartu aplikace na svém zařízení.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
