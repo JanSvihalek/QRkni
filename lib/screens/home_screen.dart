@@ -32,6 +32,29 @@ class _HomeScreenState extends State<HomeScreen> {
   // Košík
   final List<_CartEntry> _cart = [];
 
+  // Zpráva pro příjemce
+  final _msgController = TextEditingController();
+  String _autoMessage = '';
+
+  @override
+  void dispose() {
+    _msgController.dispose();
+    super.dispose();
+  }
+
+  void _updateAutoMessage() {
+    final newAuto = _cart.isEmpty
+        ? ''
+        : _cart
+            .map((e) => e.quantity > 1 ? '${e.item.name} ×${e.quantity}' : e.item.name)
+            .join(', ');
+    final clamped = newAuto.length > 60 ? newAuto.substring(0, 60) : newAuto;
+    if (_msgController.text == _autoMessage) {
+      _msgController.text = clamped;
+    }
+    _autoMessage = clamped;
+  }
+
   // ── Košík ────────────────────────────────────────────────────────────────
 
   void _addToCart(PaymentItem item) {
@@ -43,6 +66,7 @@ class _HomeScreenState extends State<HomeScreen> {
         _cart.add(_CartEntry(item: item));
       }
     });
+    _updateAutoMessage();
   }
 
   void _removeFromCart(String itemId) {
@@ -55,9 +79,13 @@ class _HomeScreenState extends State<HomeScreen> {
         _cart.removeWhere((e) => e.item.id == itemId);
       }
     });
+    _updateAutoMessage();
   }
 
-  void _clearCart() => setState(() => _cart.clear());
+  void _clearCart() {
+    setState(() => _cart.clear());
+    _updateAutoMessage();
+  }
 
   double get _cartTotal =>
       _cart.fold(0, (sum, e) => sum + e.item.price * e.quantity);
@@ -502,12 +530,17 @@ class _HomeScreenState extends State<HomeScreen> {
                                                 quantity: e.quantity,
                                               ))
                                           .toList(),
+                                      customMessage: _msgController.text.trim().isEmpty
+                                          ? null
+                                          : _msgController.text.trim(),
                                     ),
                                   ),
                                 );
                                 if (paid == true) {
                                   _clearCart();
                                   setState(() => _input = '0');
+                                  _msgController.clear();
+                                  _autoMessage = '';
                                 }
                               }
                             : null,
@@ -537,7 +570,21 @@ class _HomeScreenState extends State<HomeScreen> {
                               borderRadius: BorderRadius.circular(12)),
                         ),
                       ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 8),
+                      TextField(
+                        controller: _msgController,
+                        maxLength: 60,
+                        decoration: InputDecoration(
+                          labelText: 'Zpráva pro příjemce',
+                          hintText: 'Volitelné',
+                          prefixIcon: const Icon(Icons.message_outlined),
+                          border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12)),
+                          contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 12),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
                     ],
                   ),
                 ),

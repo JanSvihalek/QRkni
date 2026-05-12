@@ -11,6 +11,7 @@ class QrDisplayScreen extends StatefulWidget {
   final PaymentProfile profile;
   final double amount;
   final List<TransactionItem> items;
+  final String? customMessage;
 
   const QrDisplayScreen({
     super.key,
@@ -18,6 +19,7 @@ class QrDisplayScreen extends StatefulWidget {
     required this.profile,
     required this.amount,
     this.items = const [],
+    this.customMessage,
   });
 
   @override
@@ -48,7 +50,10 @@ class _QrDisplayScreenState extends State<QrDisplayScreen> {
     super.dispose();
   }
 
-  String get _qrData => widget.profile.toSpaydString(amount: widget.amount);
+  String get _qrData => widget.profile.toSpaydString(
+        amount: widget.amount,
+        messageOverride: widget.customMessage,
+      );
 
   String get _formattedAmount =>
       '${widget.amount.toStringAsFixed(2).replaceAll('.', ',')} Kč';

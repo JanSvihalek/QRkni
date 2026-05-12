@@ -29,7 +29,7 @@ class PaymentProfile {
 
   /// Generuje SPAYD řetězec pro český QR platební kód.
   /// Formát: SPD*1.0*ACC:{IBAN}[+{BIC}]*AM:{amount}*CC:CZK*...
-  String toSpaydString({double? amount}) {
+  String toSpaydString({double? amount, String? messageOverride}) {
     final effectiveAmount = amount ?? defaultAmount;
     final parts = <String>['SPD', '1.0'];
 
@@ -47,8 +47,11 @@ class PaymentProfile {
       parts.add('RN:$rn');
     }
 
-    if (message != null && message!.isNotEmpty) {
-      final msg = message!.length > 60 ? message!.substring(0, 60) : message!;
+    final effectiveMessage = (messageOverride != null && messageOverride.isNotEmpty)
+        ? messageOverride
+        : message;
+    if (effectiveMessage != null && effectiveMessage.isNotEmpty) {
+      final msg = effectiveMessage.length > 60 ? effectiveMessage.substring(0, 60) : effectiveMessage;
       parts.add('MSG:$msg');
     }
 
