@@ -236,7 +236,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
                 SizedBox(height: 4),
                 Text(
-                  'v2.5.4',
+                  'v2.5.5',
                   style: TextStyle(
                     fontSize: 11,
                     color: AppColors.label,
@@ -566,7 +566,10 @@ class _WorkersNavTile extends StatelessWidget {
                       if (workers == null || workers.isEmpty) {
                         return const Text(
                           'Správa přístupu a PIN kódů',
-                          style: TextStyle(fontSize: 12, color: AppColors.muted),
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: AppColors.muted,
+                          ),
                         );
                       }
                       final online = workers.where((w) => w.isOnline).length;
@@ -601,7 +604,10 @@ class _OnlineStatus extends StatelessWidget {
           style: const TextStyle(fontSize: 12, color: AppColors.muted),
         ),
         if (online > 0 && offline > 0) ...[
-          const Text('  ·  ', style: TextStyle(fontSize: 12, color: AppColors.muted)),
+          const Text(
+            '  ·  ',
+            style: TextStyle(fontSize: 12, color: AppColors.muted),
+          ),
           const _StatusDot(color: Colors.red),
           const SizedBox(width: 4),
           Text(

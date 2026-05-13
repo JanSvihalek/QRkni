@@ -17,9 +17,11 @@ service cloud.firestore {
         allow read, write: if request.auth != null && request.auth.uid == userId;
       }
 
-      // Brigádníci: vlastník má plný přístup, přihlášený uživatel může zapsat jen lastSeen
+      // Brigádníci: vlastník má plný přístup, přihlášený uživatel (anonymní) může číst
+      // a zapsat jen pole lastSeen — potřebné pro kontrolu existence a online status
       match /workers/{docId} {
         allow read, write: if request.auth != null && request.auth.uid == userId;
+        allow read: if request.auth != null;
         allow update: if request.auth != null &&
                          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['lastSeen']);
       }

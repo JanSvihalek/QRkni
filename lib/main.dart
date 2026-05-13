@@ -73,6 +73,24 @@ class _AppEntryState extends State<_AppEntry> {
           // Firestore se připojí po obnovení připojení.
         }
       }
+
+      // Pokud je síť k dispozici, ověříme že vlastník brigádníka nesmazal
+      if (ownerId != null && pinHash != null) {
+        try {
+          final exists = await FirestoreService()
+              .workerExistsByPinHash(ownerId, pinHash)
+              .timeout(const Duration(seconds: 5));
+          if (!exists) {
+            await storage.unpairWorkerDevice();
+            await FirebaseAuth.instance.signOut();
+            if (mounted) setState(() => _isWorkerDevice = false);
+            return;
+          }
+        } catch (_) {
+          // Offline — přeskočíme, kontrola proběhne při zadání PINu
+        }
+      }
+
       if (mounted) {
         setState(() {
           _isWorkerDevice = true;

@@ -51,9 +51,7 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
   Future<void> _updateLastSeen() async {
     final pinHash = await CredentialStorage().getWorkerPinHash();
     if (pinHash == null) return;
-    try {
-      await FirestoreService().updateWorkerLastSeen(widget.userId, pinHash);
-    } catch (_) {}
+    await FirestoreService().updateWorkerLastSeen(widget.userId, pinHash);
   }
 
   @override
