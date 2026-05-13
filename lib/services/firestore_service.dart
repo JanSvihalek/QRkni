@@ -133,4 +133,14 @@ class FirestoreService {
   Future<void> deleteWorker(String uid, String workerId) async {
     await _workersRef(uid).doc(workerId).delete();
   }
+
+  Future<void> updateWorkerLastSeen(String ownerUid, String pinHash) async {
+    final snap = await _workersRef(ownerUid)
+        .where('pinHash', isEqualTo: pinHash)
+        .limit(1)
+        .get();
+    if (snap.docs.isEmpty) return;
+    await snap.docs.first.reference
+        .update({'lastSeen': FieldValue.serverTimestamp()});
+  }
 }

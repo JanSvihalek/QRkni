@@ -1,5 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import '../services/credential_storage.dart';
+import '../services/firestore_service.dart';
 import '../theme/app_theme.dart';
 import 'home_screen.dart';
 import 'settings_screen.dart';
@@ -18,13 +20,39 @@ class MainScreen extends StatefulWidget {
   State<MainScreen> createState() => _MainScreenState();
 }
 
-class _MainScreenState extends State<MainScreen> {
+class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
   int _currentIndex = 0;
 
   late final List<Widget> _screens = [
     HomeScreen(userId: widget.userId, isWorkerMode: widget.isWorkerMode),
     if (!widget.isWorkerMode) SettingsScreen(userId: widget.userId),
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    if (widget.isWorkerMode) _updateLastSeen();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed && widget.isWorkerMode) {
+      _updateLastSeen();
+    }
+  }
+
+  Future<void> _updateLastSeen() async {
+    final pinHash = await CredentialStorage().getWorkerPinHash();
+    if (pinHash == null) return;
+    await FirestoreService().updateWorkerLastSeen(widget.userId, pinHash);
+  }
 
   @override
   Widget build(BuildContext context) {

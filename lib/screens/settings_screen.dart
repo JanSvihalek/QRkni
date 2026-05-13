@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
+import '../models/worker.dart';
 import '../services/auth_service.dart';
 import '../services/biometric_service.dart';
 import '../services/credential_storage.dart';
@@ -147,10 +148,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
           const _SectionHeader('Zaměstnanci/Brigádníci'),
           _TileGroup(
             children: [
-              _NavTile(
-                icon: Icons.people_outline,
-                title: 'Zaměstnanci/Brigádníci',
-                subtitle: 'Správa přístupu a PIN kódů',
+              _WorkersNavTile(
+                userId: widget.userId,
                 onTap: () => Navigator.push(
                   context,
                   MaterialPageRoute(
@@ -237,7 +236,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
                 SizedBox(height: 4),
                 Text(
-                  'v2.4.8',
+                  'v2.4.9',
                   style: TextStyle(
                     fontSize: 11,
                     color: AppColors.label,
@@ -528,6 +527,103 @@ class _IconBubble extends StatelessWidget {
       ),
       alignment: Alignment.center,
       child: Icon(icon, size: 18, color: AppColors.primaryBlue),
+    );
+  }
+}
+
+class _WorkersNavTile extends StatelessWidget {
+  final String userId;
+  final VoidCallback onTap;
+  const _WorkersNavTile({required this.userId, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+        child: Row(
+          children: [
+            const _IconBubble(icon: Icons.people_outline),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Zaměstnanci/Brigádníci',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 15,
+                      color: AppColors.heading,
+                    ),
+                  ),
+                  const SizedBox(height: 3),
+                  StreamBuilder<List<Worker>>(
+                    stream: FirestoreService().workersStream(userId),
+                    builder: (context, snapshot) {
+                      final workers = snapshot.data;
+                      if (workers == null || workers.isEmpty) {
+                        return const Text(
+                          'Správa přístupu a PIN kódů',
+                          style: TextStyle(fontSize: 12, color: AppColors.muted),
+                        );
+                      }
+                      final online = workers.where((w) => w.isOnline).length;
+                      final offline = workers.length - online;
+                      return _OnlineStatus(online: online, offline: offline);
+                    },
+                  ),
+                ],
+              ),
+            ),
+            const Icon(Icons.chevron_right, color: AppColors.label, size: 20),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _OnlineStatus extends StatelessWidget {
+  final int online;
+  final int offline;
+  const _OnlineStatus({required this.online, required this.offline});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        _StatusDot(color: online > 0 ? Colors.green : Colors.red),
+        const SizedBox(width: 4),
+        Text(
+          online > 0 ? '$online online' : 'Nikdo online',
+          style: const TextStyle(fontSize: 12, color: AppColors.muted),
+        ),
+        if (online > 0 && offline > 0) ...[
+          const Text('  ·  ', style: TextStyle(fontSize: 12, color: AppColors.muted)),
+          const _StatusDot(color: Colors.red),
+          const SizedBox(width: 4),
+          Text(
+            '$offline offline',
+            style: const TextStyle(fontSize: 12, color: AppColors.muted),
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+class _StatusDot extends StatelessWidget {
+  final Color color;
+  const _StatusDot({required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 8,
+      height: 8,
+      decoration: BoxDecoration(color: color, shape: BoxShape.circle),
     );
   }
 }
