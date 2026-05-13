@@ -41,6 +41,7 @@ class _WorkerRegisterScreenState extends State<WorkerRegisterScreen> {
 
     if (mounted) {
       widget.onRegistered();
+      Navigator.of(context).popUntil((route) => route.isFirst);
     }
   }
 
