@@ -27,6 +27,7 @@ class PaymentTransaction {
   final double amount;
   final List<TransactionItem> items;
   final DateTime createdAt;
+  final String? createdBy;
 
   const PaymentTransaction({
     this.id,
@@ -35,6 +36,7 @@ class PaymentTransaction {
     required this.amount,
     required this.items,
     required this.createdAt,
+    this.createdBy,
   });
 
   Map<String, dynamic> toFirestore() => {
@@ -43,6 +45,7 @@ class PaymentTransaction {
         'amount': amount,
         'items': items.map((i) => i.toMap()).toList(),
         'createdAt': Timestamp.fromDate(createdAt),
+        if (createdBy != null) 'createdBy': createdBy,
       };
 
   factory PaymentTransaction.fromFirestore(DocumentSnapshot doc) {
@@ -57,6 +60,7 @@ class PaymentTransaction {
               .toList() ??
           [],
       createdAt: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
+      createdBy: data['createdBy'] as String?,
     );
   }
 }

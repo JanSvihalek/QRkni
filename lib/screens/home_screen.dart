@@ -1,7 +1,9 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import '../models/payment_item.dart';
 import '../models/payment_profile.dart';
 import '../models/payment_transaction.dart';
+import '../services/credential_storage.dart';
 import '../services/firestore_service.dart';
 import 'items_screen.dart';
 import 'profiles_screen.dart';
@@ -129,6 +131,14 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   double? get _finalAmount => _hasCart ? _cartTotal : _manualAmount;
+
+  Future<String?> _resolveCreatedBy() async {
+    if (widget.isWorkerMode) {
+      return await CredentialStorage().getWorkerName() ?? 'Brigádník';
+    }
+    final user = FirebaseAuth.instance.currentUser;
+    return user?.displayName ?? user?.email ?? 'Majitel';
+  }
 
   // ── Picker položek ────────────────────────────────────────────────────────
 
@@ -520,6 +530,8 @@ class _HomeScreenState extends State<HomeScreen> {
                       FilledButton(
                         onPressed: selected != null && amount != null
                             ? () async {
+                                final createdBy = await _resolveCreatedBy();
+                                if (!context.mounted) return;
                                 final paid = await Navigator.push<bool>(
                                   context,
                                   MaterialPageRoute(
@@ -537,6 +549,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                       customMessage: _msgController.text.trim().isEmpty
                                           ? null
                                           : _msgController.text.trim(),
+                                      createdBy: createdBy,
                                     ),
                                   ),
                                 );

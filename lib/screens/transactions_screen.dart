@@ -223,9 +223,13 @@ class _TransactionTile extends StatelessWidget {
     final amountStr =
         '${t.amount.toStringAsFixed(2).replaceAll('.', ',')} Kč';
 
-    final subtitle = t.items.isEmpty
-        ? t.profileName
-        : '${t.profileName} · ${t.items.map((i) => '${i.name} ×${i.quantity}').join(', ')}';
+    final parts = <String>[
+      t.profileName,
+      if (t.items.isNotEmpty)
+        t.items.map((i) => '${i.name} ×${i.quantity}').join(', '),
+      if (t.createdBy != null && t.createdBy!.isNotEmpty) t.createdBy!,
+    ];
+    final subtitle = parts.join(' · ');
 
     return ListTile(
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),

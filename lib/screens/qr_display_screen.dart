@@ -12,6 +12,7 @@ class QrDisplayScreen extends StatefulWidget {
   final double amount;
   final List<TransactionItem> items;
   final String? customMessage;
+  final String? createdBy;
 
   const QrDisplayScreen({
     super.key,
@@ -20,6 +21,7 @@ class QrDisplayScreen extends StatefulWidget {
     required this.amount,
     this.items = const [],
     this.customMessage,
+    this.createdBy,
   });
 
   @override
@@ -69,6 +71,7 @@ class _QrDisplayScreenState extends State<QrDisplayScreen> {
           amount: widget.amount,
           items: widget.items,
           createdAt: DateTime.now(),
+          createdBy: widget.createdBy,
         ),
       );
       if (mounted) Navigator.pop(context, true);
