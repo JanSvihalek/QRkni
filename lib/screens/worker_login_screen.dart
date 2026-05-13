@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import '../services/credential_storage.dart';
 import '../services/worker_service.dart';
@@ -44,21 +45,30 @@ class _WorkerLoginScreenState extends State<WorkerLoginScreen> {
     });
   }
 
-  void _verify() {
+  Future<void> _verify() async {
     final ok = WorkerService.verifyPin(
       widget.ownerUserId,
       _pin,
       widget.pinHash,
     );
     if (ok) {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(
-          builder: (_) => MainScreen(
-            userId: widget.ownerUserId,
-            isWorkerMode: true,
+      if (FirebaseAuth.instance.currentUser == null) {
+        try {
+          await FirebaseAuth.instance
+              .signInAnonymously()
+              .timeout(const Duration(seconds: 10));
+        } catch (_) {}
+      }
+      if (mounted) {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (_) => MainScreen(
+              userId: widget.ownerUserId,
+              isWorkerMode: true,
+            ),
           ),
-        ),
-      );
+        );
+      }
     } else {
       setState(() {
         _pin = '';
