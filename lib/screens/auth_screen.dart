@@ -770,8 +770,10 @@ class _AuthScreenState extends State<AuthScreen> {
               ),
               if (widget.onWorkerRegistered != null) ...[
                 const SizedBox(height: 20),
-                Center(
-                  child: TextButton(
+                SizedBox(
+                  width: double.infinity,
+                  height: 52,
+                  child: OutlinedButton.icon(
                     onPressed: _isLoading
                         ? null
                         : () => Navigator.push(
@@ -782,9 +784,18 @@ class _AuthScreenState extends State<AuthScreen> {
                                 ),
                               ),
                             ),
-                    child: const Text(
-                      'Jsem zaměstnanec/brigádník',
-                      style: TextStyle(color: _labelColor, fontSize: 13),
+                    icon: const Icon(Icons.badge_outlined, size: 20),
+                    label: const Text('Jsem zaměstnanec/brigádník'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: _primaryBlue,
+                      side: const BorderSide(color: _primaryBlue, width: 1.5),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      textStyle: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
                 ),
