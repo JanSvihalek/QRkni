@@ -86,7 +86,8 @@ class _AppEntryState extends State<_AppEntry> {
             if (mounted) setState(() => _isWorkerDevice = false);
             return;
           }
-        } catch (_) {
+        } catch (e) {
+          debugPrint('workerExistsByPinHash selhal: $e');
           // Offline — přeskočíme, kontrola proběhne při zadání PINu
         }
       }

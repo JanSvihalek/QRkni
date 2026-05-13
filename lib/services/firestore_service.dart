@@ -138,7 +138,7 @@ class FirestoreService {
     final snap = await _workersRef(ownerUid)
         .where('pinHash', isEqualTo: pinHash)
         .limit(1)
-        .get();
+        .get(const GetOptions(source: Source.server));
     return snap.docs.isNotEmpty;
   }
 
