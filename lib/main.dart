@@ -49,6 +49,7 @@ class _AppEntryState extends State<_AppEntry> {
   String? _workerOwnerId;
   String? _workerName;
   String? _workerPinHash;
+  String? _startupCheckError;
 
   @override
   void initState() {
@@ -87,7 +88,7 @@ class _AppEntryState extends State<_AppEntry> {
             return;
           }
         } catch (e) {
-          debugPrint('workerExistsByPinHash selhal: $e');
+          _startupCheckError = '$e';
           // Offline — přeskočíme, kontrola proběhne při zadání PINu
         }
       }
@@ -120,6 +121,7 @@ class _AppEntryState extends State<_AppEntry> {
         workerName: _workerName!,
         pinHash: _workerPinHash!,
         onUnpaired: _checkWorkerDevice,
+        startupError: _startupCheckError,
       );
     }
 

@@ -12,6 +12,7 @@ class WorkerLoginScreen extends StatefulWidget {
   final String workerName;
   final String pinHash;
   final VoidCallback onUnpaired;
+  final String? startupError;
 
   const WorkerLoginScreen({
     super.key,
@@ -19,6 +20,7 @@ class WorkerLoginScreen extends StatefulWidget {
     required this.workerName,
     required this.pinHash,
     required this.onUnpaired,
+    this.startupError,
   });
 
   @override
@@ -79,8 +81,23 @@ class _WorkerLoginScreenState extends State<WorkerLoginScreen> {
         widget.onUnpaired();
         return;
       }
-    } catch (_) {
-      // Bez sítě přeskočíme kontrolu — brigádník se přihlásí normálně
+    } catch (e) {
+      if (mounted) {
+        await showDialog<void>(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            title: const Text('Chyba ověření'),
+            content: Text('$e'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('OK'),
+              ),
+            ],
+          ),
+        );
+      }
+      return;
     }
 
     if (mounted) {
@@ -148,6 +165,23 @@ class _WorkerLoginScreenState extends State<WorkerLoginScreen> {
                 'Zaměstnanecký/Brigádnický přístup',
                 style: TextStyle(fontSize: 14, color: AppColors.muted),
               ),
+              if (widget.startupError != null) ...[
+                const SizedBox(height: 12),
+                Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 16),
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: Colors.red.shade50,
+                    border: Border.all(color: Colors.red.shade200),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Text(
+                    'Chyba ověření při startu:\n${widget.startupError}',
+                    style: TextStyle(fontSize: 12, color: Colors.red.shade700),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              ],
               const SizedBox(height: 40),
               // PIN tečky
               Row(
