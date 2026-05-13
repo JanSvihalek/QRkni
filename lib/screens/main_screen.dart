@@ -46,7 +46,6 @@ class _MainScreenState extends State<MainScreen> {
                 child: NavigationBar(
                   backgroundColor: Colors.white.withValues(alpha: 0.85),
                   selectedIndex: _currentIndex,
-                  height: 70,
                   onDestinationSelected: (i) =>
                       setState(() => _currentIndex = i),
                   destinations: [
