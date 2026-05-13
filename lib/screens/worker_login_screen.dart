@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import '../services/credential_storage.dart';
+import '../services/firestore_service.dart';
 import '../services/worker_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/logo_scan_brackets.dart';
@@ -51,29 +52,46 @@ class _WorkerLoginScreenState extends State<WorkerLoginScreen> {
       _pin,
       widget.pinHash,
     );
-    if (ok) {
-      if (FirebaseAuth.instance.currentUser == null) {
-        try {
-          await FirebaseAuth.instance
-              .signInAnonymously()
-              .timeout(const Duration(seconds: 10));
-        } catch (_) {}
-      }
-      if (mounted) {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (_) => MainScreen(
-              userId: widget.ownerUserId,
-              isWorkerMode: true,
-            ),
-          ),
-        );
-      }
-    } else {
+    if (!ok) {
       setState(() {
         _pin = '';
         _error = true;
       });
+      return;
+    }
+
+    if (FirebaseAuth.instance.currentUser == null) {
+      try {
+        await FirebaseAuth.instance
+            .signInAnonymously()
+            .timeout(const Duration(seconds: 10));
+      } catch (_) {}
+    }
+
+    // Zkontrolujeme, jestli vlastník brigádníka nesmazal
+    try {
+      final exists = await FirestoreService()
+          .workerExistsByPinHash(widget.ownerUserId, widget.pinHash)
+          .timeout(const Duration(seconds: 5));
+      if (!exists && mounted) {
+        await CredentialStorage().unpairWorkerDevice();
+        await FirebaseAuth.instance.signOut();
+        widget.onUnpaired();
+        return;
+      }
+    } catch (_) {
+      // Bez sítě přeskočíme kontrolu — brigádník se přihlásí normálně
+    }
+
+    if (mounted) {
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (_) => MainScreen(
+            userId: widget.ownerUserId,
+            isWorkerMode: true,
+          ),
+        ),
+      );
     }
   }
 
@@ -99,6 +117,7 @@ class _WorkerLoginScreenState extends State<WorkerLoginScreen> {
     );
     if (confirmed == true) {
       await CredentialStorage().unpairWorkerDevice();
+      await FirebaseAuth.instance.signOut();
       widget.onUnpaired();
     }
   }

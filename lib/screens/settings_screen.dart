@@ -236,7 +236,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
                 SizedBox(height: 4),
                 Text(
-                  'v2.5.3',
+                  'v2.5.4',
                   style: TextStyle(
                     fontSize: 11,
                     color: AppColors.label,

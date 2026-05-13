@@ -134,6 +134,14 @@ class FirestoreService {
     await _workersRef(uid).doc(workerId).delete();
   }
 
+  Future<bool> workerExistsByPinHash(String ownerUid, String pinHash) async {
+    final snap = await _workersRef(ownerUid)
+        .where('pinHash', isEqualTo: pinHash)
+        .limit(1)
+        .get();
+    return snap.docs.isNotEmpty;
+  }
+
   Future<void> updateWorkerLastSeen(String ownerUid, String pinHash) async {
     final snap = await _workersRef(ownerUid)
         .where('pinHash', isEqualTo: pinHash)
