@@ -64,7 +64,14 @@ class _AppEntryState extends State<_AppEntry> {
       final name = await storage.getWorkerName();
       final pinHash = await storage.getWorkerPinHash();
       if (FirebaseAuth.instance.currentUser == null) {
-        await FirebaseAuth.instance.signInAnonymously();
+        try {
+          await FirebaseAuth.instance
+              .signInAnonymously()
+              .timeout(const Duration(seconds: 10));
+        } catch (_) {
+          // Pokračujeme i bez připojení — brigádník uvidí PIN obrazovku
+          // a Firebase se připojí, až bude síť k dispozici.
+        }
       }
       if (mounted) {
         setState(() {
@@ -124,7 +131,8 @@ class _ProfileChecker extends StatelessWidget {
     return StreamBuilder<List<PaymentProfile>>(
       stream: FirestoreService().profilesStream(userId),
       builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
+        if (!snapshot.hasData &&
+            snapshot.connectionState == ConnectionState.waiting) {
           return const Scaffold(
             body: Center(child: CircularProgressIndicator()),
           );
