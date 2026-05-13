@@ -60,49 +60,63 @@ class _AppEntryState extends State<_AppEntry> {
   Future<void> _checkWorkerDevice() async {
     final storage = CredentialStorage();
     final isWorker = await storage.isWorkerDevice();
-    if (isWorker) {
-      final ownerId = await storage.getWorkerOwnerId();
-      final name = await storage.getWorkerName();
-      final pinHash = await storage.getWorkerPinHash();
-      if (FirebaseAuth.instance.currentUser == null) {
-        try {
-          await FirebaseAuth.instance
-              .signInAnonymously()
-              .timeout(const Duration(seconds: 10));
-        } catch (_) {
-          // Pokračujeme i bez sítě — brigádník uvidí PIN obrazovku,
-          // Firestore se připojí po obnovení připojení.
-        }
-      }
-
-      // Pokud je síť k dispozici, ověříme že vlastník brigádníka nesmazal
-      if (ownerId != null && pinHash != null) {
-        try {
-          final exists = await FirestoreService()
-              .workerExistsByPinHash(ownerId, pinHash)
-              .timeout(const Duration(seconds: 5));
-          if (!exists) {
-            await storage.unpairWorkerDevice();
-            await FirebaseAuth.instance.signOut();
-            if (mounted) setState(() => _isWorkerDevice = false);
-            return;
-          }
-        } catch (e) {
-          _startupCheckError = '$e';
-          // Offline — přeskočíme, kontrola proběhne při zadání PINu
-        }
-      }
-
-      if (mounted) {
-        setState(() {
-          _isWorkerDevice = true;
-          _workerOwnerId = ownerId;
-          _workerName = name;
-          _workerPinHash = pinHash;
-        });
-      }
-    } else {
+    if (!isWorker) {
       if (mounted) setState(() => _isWorkerDevice = false);
+      return;
+    }
+
+    final ownerId = await storage.getWorkerOwnerId();
+    final name = await storage.getWorkerName();
+    final pinHash = await storage.getWorkerPinHash();
+
+    // Zobrazíme PIN screen okamžitě
+    if (mounted) {
+      setState(() {
+        _isWorkerDevice = true;
+        _workerOwnerId = ownerId;
+        _workerName = name;
+        _workerPinHash = pinHash;
+        _startupCheckError = null;
+      });
+    }
+
+    // Auth a Firestore check jedou na pozadí
+    _verifyWorkerAsync(ownerId, pinHash, storage);
+  }
+
+  Future<void> _verifyWorkerAsync(
+    String? ownerId,
+    String? pinHash,
+    CredentialStorage storage,
+  ) async {
+    try {
+      await FirebaseAuth.instance
+          .authStateChanges()
+          .first
+          .timeout(const Duration(seconds: 10));
+    } catch (_) {}
+
+    if (FirebaseAuth.instance.currentUser == null) {
+      try {
+        await FirebaseAuth.instance
+            .signInAnonymously()
+            .timeout(const Duration(seconds: 10));
+      } catch (_) {}
+    }
+
+    if (ownerId == null || pinHash == null) return;
+
+    try {
+      final exists = await FirestoreService()
+          .workerExistsByPinHash(ownerId, pinHash)
+          .timeout(const Duration(seconds: 5));
+      if (!exists && mounted) {
+        await storage.unpairWorkerDevice();
+        await FirebaseAuth.instance.signOut();
+        setState(() => _isWorkerDevice = false);
+      }
+    } catch (e) {
+      if (mounted) setState(() => _startupCheckError = '$e');
     }
   }
 

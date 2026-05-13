@@ -62,6 +62,13 @@ class _WorkerLoginScreenState extends State<WorkerLoginScreen> {
       return;
     }
 
+    try {
+      await FirebaseAuth.instance
+          .authStateChanges()
+          .first
+          .timeout(const Duration(seconds: 10));
+    } catch (_) {}
+
     if (FirebaseAuth.instance.currentUser == null) {
       try {
         await FirebaseAuth.instance
