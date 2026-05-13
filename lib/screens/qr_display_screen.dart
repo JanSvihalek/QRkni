@@ -12,6 +12,9 @@ class QrDisplayScreen extends StatefulWidget {
   final double amount;
   final List<TransactionItem> items;
   final String? customMessage;
+  final String? customVariableSymbol;
+  final String? customConstantSymbol;
+  final String? customSpecificSymbol;
   final String? createdBy;
 
   const QrDisplayScreen({
@@ -21,6 +24,9 @@ class QrDisplayScreen extends StatefulWidget {
     required this.amount,
     this.items = const [],
     this.customMessage,
+    this.customVariableSymbol,
+    this.customConstantSymbol,
+    this.customSpecificSymbol,
     this.createdBy,
   });
 
@@ -55,6 +61,9 @@ class _QrDisplayScreenState extends State<QrDisplayScreen> {
   String get _qrData => widget.profile.toSpaydString(
         amount: widget.amount,
         messageOverride: widget.customMessage,
+        variableSymbolOverride: widget.customVariableSymbol,
+        constantSymbolOverride: widget.customConstantSymbol,
+        specificSymbolOverride: widget.customSpecificSymbol,
       );
 
   String get _formattedAmount =>

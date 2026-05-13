@@ -243,6 +243,24 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     letterSpacing: 0.4,
                   ),
                 ),
+                SizedBox(height: 12),
+                Text(
+                  'Podpora',
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.label,
+                    letterSpacing: 0.4,
+                  ),
+                ),
+                SizedBox(height: 2),
+                SelectableText(
+                  'jan.svihalek00@gmail.com',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: AppColors.muted,
+                  ),
+                ),
               ],
             ),
           ),

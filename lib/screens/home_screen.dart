@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show FilteringTextInputFormatter, LengthLimitingTextInputFormatter;
 import '../models/payment_item.dart';
 import '../models/payment_profile.dart';
 import '../models/payment_transaction.dart';
@@ -35,15 +36,13 @@ class _HomeScreenState extends State<HomeScreen> {
   // Košík
   final List<_CartEntry> _cart = [];
 
-  // Zpráva pro příjemce
-  final _msgController = TextEditingController();
+  // Doplňující údaje pro QR (null = použít hodnotu z profilu jako fallback,
+  // prázdný string = explicitně bez hodnoty)
+  String? _customMsg;
+  String? _customVs;
+  String? _customKs;
+  String? _customSs;
   String _autoMessage = '';
-
-  @override
-  void dispose() {
-    _msgController.dispose();
-    super.dispose();
-  }
 
   void _updateAutoMessage() {
     final newAuto = _cart.isEmpty
@@ -52,10 +51,19 @@ class _HomeScreenState extends State<HomeScreen> {
             .map((e) => e.quantity > 1 ? '${e.item.name} ×${e.quantity}' : e.item.name)
             .join(', ');
     final clamped = newAuto.length > 60 ? newAuto.substring(0, 60) : newAuto;
-    if (_msgController.text == _autoMessage) {
-      _msgController.text = clamped;
+    // Pokud uživatel zprávu nepřepsal (drží hodnotu z košíku nebo nic), aktualizujeme.
+    if (_customMsg == null || _customMsg == _autoMessage) {
+      _customMsg = clamped.isEmpty ? null : clamped;
     }
     _autoMessage = clamped;
+  }
+
+  void _resetCustomFields() {
+    _customMsg = null;
+    _customVs = null;
+    _customKs = null;
+    _customSs = null;
+    _autoMessage = '';
   }
 
   // ── Košík ────────────────────────────────────────────────────────────────
@@ -363,6 +371,162 @@ class _HomeScreenState extends State<HomeScreen> {
   String _formatIban(String iban) =>
       iban.replaceAllMapped(RegExp(r'.{4}'), (m) => '${m.group(0)} ').trim();
 
+  // ── Doplňující údaje (zpráva, VS, KS, SS) ─────────────────────────────────
+
+  void _showExtraInfoSheet(BuildContext context, PaymentProfile profile) {
+    final msgCtrl = TextEditingController(text: _customMsg ?? profile.message ?? '');
+    final vsCtrl = TextEditingController(text: _customVs ?? profile.variableSymbol ?? '');
+    final ksCtrl = TextEditingController(text: _customKs ?? profile.constantSymbol ?? '');
+    final ssCtrl = TextEditingController(text: _customSs ?? profile.specificSymbol ?? '');
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (ctx) => Padding(
+        padding: EdgeInsets.only(
+          left: 16,
+          right: 16,
+          top: 8,
+          bottom: MediaQuery.of(ctx).viewInsets.bottom + 16,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade300,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            const Text(
+              'Doplňující údaje',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'Vše je volitelné. Hodnoty se přidají do QR kódu.',
+              style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: msgCtrl,
+              maxLength: 60,
+              decoration: InputDecoration(
+                labelText: 'Zpráva pro příjemce',
+                prefixIcon: const Icon(Icons.message_outlined),
+                border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12)),
+              ),
+            ),
+            const SizedBox(height: 8),
+            TextField(
+              controller: vsCtrl,
+              keyboardType: TextInputType.number,
+              inputFormatters: [
+                FilteringTextInputFormatter.digitsOnly,
+                LengthLimitingTextInputFormatter(10),
+              ],
+              decoration: InputDecoration(
+                labelText: 'Variabilní symbol (VS)',
+                helperText: 'Až 10 číslic',
+                prefixIcon: const Icon(Icons.tag),
+                border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12)),
+              ),
+            ),
+            const SizedBox(height: 8),
+            TextField(
+              controller: ksCtrl,
+              keyboardType: TextInputType.number,
+              inputFormatters: [
+                FilteringTextInputFormatter.digitsOnly,
+                LengthLimitingTextInputFormatter(4),
+              ],
+              decoration: InputDecoration(
+                labelText: 'Konstantní symbol (KS)',
+                helperText: 'Až 4 číslice',
+                prefixIcon: const Icon(Icons.numbers),
+                border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12)),
+              ),
+            ),
+            const SizedBox(height: 8),
+            TextField(
+              controller: ssCtrl,
+              keyboardType: TextInputType.number,
+              inputFormatters: [
+                FilteringTextInputFormatter.digitsOnly,
+                LengthLimitingTextInputFormatter(10),
+              ],
+              decoration: InputDecoration(
+                labelText: 'Specifický symbol (SS)',
+                helperText: 'Až 10 číslic',
+                prefixIcon: const Icon(Icons.pin_outlined),
+                border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12)),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () {
+                      setState(() {
+                        _customMsg = '';
+                        _customVs = '';
+                        _customKs = '';
+                        _customSs = '';
+                        _autoMessage = '';
+                      });
+                      Navigator.pop(ctx);
+                    },
+                    style: OutlinedButton.styleFrom(
+                      minimumSize: const Size(double.infinity, 48),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12)),
+                    ),
+                    child: const Text('Vymazat vše'),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: FilledButton(
+                    onPressed: () {
+                      setState(() {
+                        _customMsg = msgCtrl.text.trim();
+                        _customVs = vsCtrl.text.trim();
+                        _customKs = ksCtrl.text.trim();
+                        _customSs = ssCtrl.text.trim();
+                        _autoMessage = _customMsg ?? '';
+                      });
+                      Navigator.pop(ctx);
+                    },
+                    style: FilledButton.styleFrom(
+                      minimumSize: const Size(double.infinity, 48),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12)),
+                    ),
+                    child: const Text('Uložit'),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   // ── Build ────────────────────────────────────────────────────────────────
 
   @override
@@ -546,18 +710,20 @@ class _HomeScreenState extends State<HomeScreen> {
                                                 quantity: e.quantity,
                                               ))
                                           .toList(),
-                                      customMessage: _msgController.text.trim().isEmpty
-                                          ? null
-                                          : _msgController.text.trim(),
+                                      customMessage: _customMsg,
+                                      customVariableSymbol: _customVs,
+                                      customConstantSymbol: _customKs,
+                                      customSpecificSymbol: _customSs,
                                       createdBy: createdBy,
                                     ),
                                   ),
                                 );
                                 if (paid == true) {
                                   _clearCart();
-                                  setState(() => _input = '0');
-                                  _msgController.clear();
-                                  _autoMessage = '';
+                                  setState(() {
+                                    _input = '0';
+                                    _resetCustomFields();
+                                  });
                                 }
                               }
                             : null,
@@ -588,18 +754,14 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ),
                       const SizedBox(height: 8),
-                      TextField(
-                        controller: _msgController,
-                        maxLength: 60,
-                        decoration: InputDecoration(
-                          labelText: 'Zpráva pro příjemce',
-                          hintText: 'Volitelné',
-                          prefixIcon: const Icon(Icons.message_outlined),
-                          border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12)),
-                          contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 16, vertical: 12),
-                        ),
+                      _ExtraInfoButton(
+                        message: _customMsg ?? selected?.message,
+                        variableSymbol: _customVs ?? selected?.variableSymbol,
+                        constantSymbol: _customKs ?? selected?.constantSymbol,
+                        specificSymbol: _customSs ?? selected?.specificSymbol,
+                        onTap: selected == null
+                            ? null
+                            : () => _showExtraInfoSheet(context, selected!),
                       ),
                       const SizedBox(height: 8),
                     ],
@@ -624,6 +786,103 @@ class _NumpadRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: labels.map((l) => _NumpadKey(label: l, onTap: () => onTap(l))).toList(),
+    );
+  }
+}
+
+class _ExtraInfoButton extends StatelessWidget {
+  final String? message;
+  final String? variableSymbol;
+  final String? constantSymbol;
+  final String? specificSymbol;
+  final VoidCallback? onTap;
+
+  const _ExtraInfoButton({
+    required this.message,
+    required this.variableSymbol,
+    required this.constantSymbol,
+    required this.specificSymbol,
+    required this.onTap,
+  });
+
+  bool get _hasAny =>
+      (message?.isNotEmpty ?? false) ||
+      (variableSymbol?.isNotEmpty ?? false) ||
+      (constantSymbol?.isNotEmpty ?? false) ||
+      (specificSymbol?.isNotEmpty ?? false);
+
+  @override
+  Widget build(BuildContext context) {
+    final muted = Theme.of(context).colorScheme.onSurfaceVariant;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        OutlinedButton.icon(
+          onPressed: onTap,
+          icon: Icon(_hasAny ? Icons.tune : Icons.add_circle_outline),
+          label: Text(_hasAny ? 'Upravit doplňující údaje' : 'Doplňující údaje'),
+          style: OutlinedButton.styleFrom(
+            minimumSize: const Size(double.infinity, 44),
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12)),
+          ),
+        ),
+        if (_hasAny) ...[
+          const SizedBox(height: 6),
+          Wrap(
+            spacing: 6,
+            runSpacing: 6,
+            children: [
+              if (message?.isNotEmpty ?? false)
+                _InfoChip(icon: Icons.message_outlined, text: message!),
+              if (variableSymbol?.isNotEmpty ?? false)
+                _InfoChip(icon: Icons.tag, text: 'VS $variableSymbol'),
+              if (constantSymbol?.isNotEmpty ?? false)
+                _InfoChip(icon: Icons.numbers, text: 'KS $constantSymbol'),
+              if (specificSymbol?.isNotEmpty ?? false)
+                _InfoChip(icon: Icons.pin_outlined, text: 'SS $specificSymbol'),
+            ],
+          ),
+          const SizedBox(height: 2),
+          Text(
+            'Tap pro úpravu',
+            style: TextStyle(fontSize: 11, color: muted),
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+class _InfoChip extends StatelessWidget {
+  final IconData icon;
+  final String text;
+  const _InfoChip({required this.icon, required this.text});
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: scheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 12, color: scheme.onSurfaceVariant),
+          const SizedBox(width: 4),
+          ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 180),
+            child: Text(
+              text,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(fontSize: 12, color: scheme.onSurfaceVariant),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

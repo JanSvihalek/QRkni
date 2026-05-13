@@ -29,7 +29,16 @@ class PaymentProfile {
 
   /// Generuje SPAYD řetězec pro český QR platební kód.
   /// Formát: SPD*1.0*ACC:{IBAN}[+{BIC}]*AM:{amount}*CC:CZK*...
-  String toSpaydString({double? amount, String? messageOverride}) {
+  ///
+  /// Override sémantika: null = použít hodnotu z profilu, prázdný string =
+  /// explicitně bez hodnoty (pole se do SPAYD nepřidá).
+  String toSpaydString({
+    double? amount,
+    String? messageOverride,
+    String? variableSymbolOverride,
+    String? constantSymbolOverride,
+    String? specificSymbolOverride,
+  }) {
     final effectiveAmount = amount ?? defaultAmount;
     final parts = <String>['SPD', '1.0'];
 
@@ -47,24 +56,25 @@ class PaymentProfile {
       parts.add('RN:$rn');
     }
 
-    final effectiveMessage = (messageOverride != null && messageOverride.isNotEmpty)
-        ? messageOverride
-        : message;
+    final effectiveMessage = messageOverride ?? message;
     if (effectiveMessage != null && effectiveMessage.isNotEmpty) {
       final msg = effectiveMessage.length > 60 ? effectiveMessage.substring(0, 60) : effectiveMessage;
       parts.add('MSG:$msg');
     }
 
-    if (variableSymbol != null && variableSymbol!.isNotEmpty) {
-      parts.add('X-VS:$variableSymbol');
+    final effectiveVs = variableSymbolOverride ?? variableSymbol;
+    if (effectiveVs != null && effectiveVs.isNotEmpty) {
+      parts.add('X-VS:$effectiveVs');
     }
 
-    if (constantSymbol != null && constantSymbol!.isNotEmpty) {
-      parts.add('X-KS:$constantSymbol');
+    final effectiveKs = constantSymbolOverride ?? constantSymbol;
+    if (effectiveKs != null && effectiveKs.isNotEmpty) {
+      parts.add('X-KS:$effectiveKs');
     }
 
-    if (specificSymbol != null && specificSymbol!.isNotEmpty) {
-      parts.add('X-SS:$specificSymbol');
+    final effectiveSs = specificSymbolOverride ?? specificSymbol;
+    if (effectiveSs != null && effectiveSs.isNotEmpty) {
+      parts.add('X-SS:$effectiveSs');
     }
 
     return parts.join('*');
