@@ -69,8 +69,8 @@ class _AppEntryState extends State<_AppEntry> {
               .signInAnonymously()
               .timeout(const Duration(seconds: 10));
         } catch (_) {
-          // Pokračujeme i bez připojení — brigádník uvidí PIN obrazovku
-          // a Firebase se připojí, až bude síť k dispozici.
+          // Pokračujeme i bez sítě — brigádník uvidí PIN obrazovku,
+          // Firestore se připojí po obnovení připojení.
         }
       }
       if (mounted) {
