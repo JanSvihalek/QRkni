@@ -31,25 +31,16 @@ class _PaywallScreenState extends State<PaywallScreen> {
     _loadOfferings();
   }
 
-  String _debugInfo = '';
-
   Future<void> _loadOfferings() async {
     setState(() => _loading = true);
-    String debug = '';
     Offerings? offerings;
     try {
       offerings = await Purchases.getOfferings();
-      final all = offerings.all.keys.toList();
-      final pkgs = offerings.current?.availablePackages.map((p) => p.identifier).toList();
-      debug = 'all offerings: $all\ncurrent: ${offerings.current?.identifier ?? "null"}\npkgs: $pkgs';
-    } catch (e) {
-      debug = 'ERROR: $e';
-    }
+    } catch (_) {}
     if (mounted) {
       setState(() {
         _offerings = offerings;
         _loading = false;
-        _debugInfo = debug;
       });
     }
   }
@@ -140,21 +131,6 @@ class _PaywallScreenState extends State<PaywallScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // ── Debug info ──────────────────────────────────────────────────────
-          if (_debugInfo.isNotEmpty)
-            Container(
-              margin: const EdgeInsets.only(bottom: 12),
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: Colors.black87,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: SelectableText(
-                _debugInfo,
-                style: const TextStyle(color: Colors.greenAccent, fontSize: 11),
-              ),
-            ),
-
           // ── Header ──────────────────────────────────────────────────────────
           Center(
             child: Column(
@@ -489,19 +465,17 @@ class _IntervalPill extends StatelessWidget {
                   color: selected ? Colors.white : AppColors.muted,
                 ),
               ),
-              if (savings.isNotEmpty) ...[
-                const SizedBox(height: 2),
-                Text(
-                  savings,
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600,
-                    color: selected
-                        ? Colors.white.withValues(alpha: 0.85)
-                        : AppColors.success,
-                  ),
+              const SizedBox(height: 2),
+              Text(
+                savings.isNotEmpty ? savings : ' ',
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                  color: selected
+                      ? Colors.white.withValues(alpha: 0.85)
+                      : AppColors.success,
                 ),
-              ],
+              ),
             ],
           ),
         ),
