@@ -46,13 +46,13 @@ class _PaywallScreenState extends State<PaywallScreen> {
   }
 
   String _pkgId(_Plan plan, _Interval interval) => switch ((plan, interval)) {
-        (_Plan.basic, _Interval.monthly) => SubscriptionService.pkgBasicMonthly,
-        (_Plan.basic, _Interval.sixMonth) => SubscriptionService.pkgBasicSixMonth,
-        (_Plan.basic, _Interval.annual) => SubscriptionService.pkgBasicAnnual,
-        (_Plan.pro, _Interval.monthly) => SubscriptionService.pkgProMonthly,
-        (_Plan.pro, _Interval.sixMonth) => SubscriptionService.pkgProSixMonth,
-        (_Plan.pro, _Interval.annual) => SubscriptionService.pkgProAnnual,
-      };
+    (_Plan.basic, _Interval.monthly) => SubscriptionService.pkgBasicMonthly,
+    (_Plan.basic, _Interval.sixMonth) => SubscriptionService.pkgBasicSixMonth,
+    (_Plan.basic, _Interval.annual) => SubscriptionService.pkgBasicAnnual,
+    (_Plan.pro, _Interval.monthly) => SubscriptionService.pkgProMonthly,
+    (_Plan.pro, _Interval.sixMonth) => SubscriptionService.pkgProSixMonth,
+    (_Plan.pro, _Interval.annual) => SubscriptionService.pkgProAnnual,
+  };
 
   Package? _getPackage(_Plan plan, _Interval interval) =>
       _offerings?.current?.getPackage(_pkgId(plan, interval));
@@ -66,7 +66,8 @@ class _PaywallScreenState extends State<PaywallScreen> {
     if (monthly == null || target == null) return '';
     final months = interval == _Interval.sixMonth ? 6.0 : 12.0;
     final savings =
-        ((1 - target.storeProduct.price / months / monthly.storeProduct.price) * 100)
+        ((1 - target.storeProduct.price / months / monthly.storeProduct.price) *
+                100)
             .round();
     return savings > 0 ? '-$savings%' : '';
   }
@@ -79,7 +80,8 @@ class _PaywallScreenState extends State<PaywallScreen> {
       await SubscriptionService.purchasePackage(pkg);
     } catch (e) {
       if (!mounted) return;
-      final cancelled = e is PurchasesError &&
+      final cancelled =
+          e is PurchasesError &&
           e.code == PurchasesErrorCode.purchaseCancelledError;
       if (!cancelled) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -96,9 +98,9 @@ class _PaywallScreenState extends State<PaywallScreen> {
     try {
       await SubscriptionService.restorePurchases();
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Nákupy obnoveny.')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Nákupy obnoveny.')));
       }
     } catch (_) {
       if (mounted) {
@@ -185,19 +187,24 @@ class _PaywallScreenState extends State<PaywallScreen> {
             style: FilledButton.styleFrom(
               minimumSize: const Size(double.infinity, 56),
               shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16)),
+                borderRadius: BorderRadius.circular(16),
+              ),
             ),
             child: _purchasing
                 ? const SizedBox(
                     width: 22,
                     height: 22,
                     child: CircularProgressIndicator(
-                        color: Colors.white, strokeWidth: 2.5),
+                      color: Colors.white,
+                      strokeWidth: 2.5,
+                    ),
                   )
                 : Text(
                     'Vyzkoušet 30 dní zdarma',
                     style: const TextStyle(
-                        fontSize: 17, fontWeight: FontWeight.w600),
+                      fontSize: 17,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
           ),
           const SizedBox(height: 10),
@@ -218,21 +225,24 @@ class _PaywallScreenState extends State<PaywallScreen> {
           const Text(
             'Předplatné se automaticky obnoví. Zrušit lze kdykoli v nastavení účtu.',
             textAlign: TextAlign.center,
-            style: TextStyle(
-                fontSize: 11, color: AppColors.label, height: 1.4),
+            style: TextStyle(fontSize: 11, color: AppColors.label, height: 1.4),
           ),
           const SizedBox(height: 8),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               _LegalLink(
-                  text: 'Podmínky použití',
-                  url: 'https://qrkni.app/terms'),
-              const Text('  ·  ',
-                  style: TextStyle(color: AppColors.label, fontSize: 12)),
+                text: 'Podmínky použití',
+                url: 'https://qrkni.app/terms',
+              ),
+              const Text(
+                '  ·  ',
+                style: TextStyle(color: AppColors.label, fontSize: 12),
+              ),
               _LegalLink(
-                  text: 'Ochrana soukromí',
-                  url: 'https://qrkni.app/privacy'),
+                text: 'Ochrana soukromí',
+                url: 'https://qrkni.app/privacy',
+              ),
             ],
           ),
           const SizedBox(height: 16),
@@ -261,7 +271,7 @@ class _PlanToggle extends StatelessWidget {
         children: [
           _PlanTab(
             label: 'Basic',
-            subtitle: 'Max 3 brigádníci',
+            subtitle: 'Max 3 zaměstnanci/brigádníci',
             selected: selected == _Plan.basic,
             onTap: () => onChanged(_Plan.basic),
           ),
@@ -306,7 +316,7 @@ class _PlanTab extends StatelessWidget {
                       color: Colors.black.withValues(alpha: 0.06),
                       blurRadius: 4,
                       offset: const Offset(0, 1),
-                    )
+                    ),
                   ]
                 : null,
           ),
@@ -346,13 +356,13 @@ class _PlanFeatureList extends StatelessWidget {
   Widget build(BuildContext context) {
     final features = plan == _Plan.pro
         ? [
-            'Neomezení brigádníci',
+            'Neomezení zaměstnanci/brigádníci',
             'Neomezené QR platby',
             'Katalog položek',
             'Historie transakcí',
           ]
         : [
-            'Max 3 brigádníci',
+            'Max 3 zaměstnanci/brigádníci',
             'Neomezené QR platby',
             'Katalog položek',
             'Historie transakcí',
@@ -370,19 +380,28 @@ class _PlanFeatureList extends StatelessWidget {
         ),
         child: Column(
           children: features
-              .map((f) => Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 4),
-                    child: Row(
-                      children: [
-                        const Icon(Icons.check_circle,
-                            size: 16, color: AppColors.primaryBlue),
-                        const SizedBox(width: 10),
-                        Text(f,
-                            style: const TextStyle(
-                                fontSize: 13, color: AppColors.ink700)),
-                      ],
-                    ),
-                  ))
+              .map(
+                (f) => Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 4),
+                  child: Row(
+                    children: [
+                      const Icon(
+                        Icons.check_circle,
+                        size: 16,
+                        color: AppColors.primaryBlue,
+                      ),
+                      const SizedBox(width: 10),
+                      Text(
+                        f,
+                        style: const TextStyle(
+                          fontSize: 13,
+                          color: AppColors.ink700,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              )
               .toList(),
         ),
       ),
@@ -515,15 +534,14 @@ class _PriceDisplay extends StatelessWidget {
       final months = interval == _Interval.sixMonth
           ? 6.0
           : interval == _Interval.annual
-              ? 12.0
-              : 1.0;
+          ? 12.0
+          : 1.0;
       final perMonth = package!.storeProduct.price / months;
       sub = switch (interval) {
         _Interval.monthly => 'za měsíc',
         _Interval.sixMonth =>
           'za 6 měsíců  •  ${perMonth.toStringAsFixed(0)} Kč/měs',
-        _Interval.annual =>
-          'za rok  •  ${perMonth.toStringAsFixed(0)} Kč/měs',
+        _Interval.annual => 'za rok  •  ${perMonth.toStringAsFixed(0)} Kč/měs',
       };
     } else {
       final fb = _fallback[(plan, interval)]!;
@@ -535,11 +553,9 @@ class _PriceDisplay extends StatelessWidget {
       duration: const Duration(milliseconds: 200),
       child: Container(
         key: ValueKey('$plan-$interval'),
-        padding:
-            const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
         decoration: BoxDecoration(
-          border:
-              Border.all(color: AppColors.primaryBlue, width: 2),
+          border: Border.all(color: AppColors.primaryBlue, width: 2),
           borderRadius: BorderRadius.circular(16),
         ),
         child: Column(
@@ -553,9 +569,10 @@ class _PriceDisplay extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 4),
-            Text(sub,
-                style: const TextStyle(
-                    fontSize: 13, color: AppColors.muted)),
+            Text(
+              sub,
+              style: const TextStyle(fontSize: 13, color: AppColors.muted),
+            ),
           ],
         ),
       ),
@@ -573,8 +590,8 @@ class _LegalLink extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () => launchUrl(Uri.parse(url),
-          mode: LaunchMode.externalApplication),
+      onTap: () =>
+          launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication),
       child: Text(
         text,
         style: const TextStyle(
