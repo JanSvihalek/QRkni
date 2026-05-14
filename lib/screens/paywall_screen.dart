@@ -271,7 +271,7 @@ class _PlanToggle extends StatelessWidget {
         children: [
           _PlanTab(
             label: 'Basic',
-            subtitle: 'Max 3 zaměstnanci/brigádníci',
+            subtitle: 'Max 3 zaměstnanci',
             selected: selected == _Plan.basic,
             onTap: () => onChanged(_Plan.basic),
           ),
