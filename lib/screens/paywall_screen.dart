@@ -31,10 +31,19 @@ class _PaywallScreenState extends State<PaywallScreen> {
     _loadOfferings();
   }
 
+  String _debugInfo = '';
+
   Future<void> _loadOfferings() async {
     setState(() => _loading = true);
     final offerings = await SubscriptionService.getOfferings();
-    if (mounted) setState(() { _offerings = offerings; _loading = false; });
+    final pkgs = offerings?.current?.availablePackages.map((p) => p.identifier).toList();
+    if (mounted) {
+      setState(() {
+        _offerings = offerings;
+        _loading = false;
+        _debugInfo = 'offering: ${offerings?.current?.identifier ?? "null"}\npkgs: $pkgs';
+      });
+    }
   }
 
   String _pkgId(_Plan plan, _Interval interval) => switch ((plan, interval)) {
@@ -123,6 +132,21 @@ class _PaywallScreenState extends State<PaywallScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          // ── Debug info ──────────────────────────────────────────────────────
+          if (_debugInfo.isNotEmpty)
+            Container(
+              margin: const EdgeInsets.only(bottom: 12),
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: Colors.black87,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: SelectableText(
+                _debugInfo,
+                style: const TextStyle(color: Colors.greenAccent, fontSize: 11),
+              ),
+            ),
+
           // ── Header ──────────────────────────────────────────────────────────
           Center(
             child: Column(
