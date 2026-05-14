@@ -26,10 +26,13 @@ class SubscriptionService {
     await Purchases.configure(config);
   }
 
-  static Future<void> logIn(String userId) async {
+  static Future<SubscriptionStatus> logIn(String userId) async {
     try {
-      await Purchases.logIn(userId);
-    } catch (_) {}
+      final result = await Purchases.logIn(userId);
+      return statusFromInfo(result.customerInfo);
+    } catch (_) {
+      return SubscriptionStatus.none;
+    }
   }
 
   static Future<void> logOut() async {

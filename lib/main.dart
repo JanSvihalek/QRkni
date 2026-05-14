@@ -229,7 +229,7 @@ class _SubscriptionGateState extends State<_SubscriptionGate> {
   }
 
   Future<void> _loadStatus() async {
-    final status = await SubscriptionService.getStatus();
+    final status = await SubscriptionService.logIn(widget.userId);
     if (mounted) setState(() { _status = status; _loading = false; });
   }
 

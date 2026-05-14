@@ -96,11 +96,15 @@ class _PaywallScreenState extends State<PaywallScreen> {
   Future<void> _restore() async {
     setState(() => _purchasing = true);
     try {
-      await SubscriptionService.restorePurchases();
+      final info = await SubscriptionService.restorePurchases();
+      final status = SubscriptionService.statusFromInfo(info);
       if (mounted) {
+        final msg = status.hasAccess
+            ? 'Nákupy obnoveny.'
+            : 'Žádné aktivní předplatné k obnovení.';
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(const SnackBar(content: Text('Nákupy obnoveny.')));
+        ).showSnackBar(SnackBar(content: Text(msg)));
       }
     } catch (_) {
       if (mounted) {
