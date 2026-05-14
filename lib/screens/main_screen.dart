@@ -73,7 +73,7 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
                 ),
                 child: NavigationBar(
                   backgroundColor: Colors.white.withValues(alpha: 0.85),
-                  height: 60,
+                  height: 50,
                   labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
                   selectedIndex: _currentIndex,
                   onDestinationSelected: (i) =>
