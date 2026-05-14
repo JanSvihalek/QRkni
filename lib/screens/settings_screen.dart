@@ -123,11 +123,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
           // ── Předplatné ──────────────────────────────────────────────────
           const _SectionHeader('Předplatné'),
-          _TileGroup(
-            children: [
-              _SubscriptionTile(userId: widget.userId),
-            ],
-          ),
+          _TileGroup(children: [_SubscriptionTile(userId: widget.userId)]),
 
           const SizedBox(height: 32),
 
@@ -254,7 +250,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
                 SizedBox(height: 4),
                 Text(
-                  'v2.7.2',
+                  'v2.8.0',
                   style: TextStyle(
                     fontSize: 11,
                     color: AppColors.label,
@@ -274,10 +270,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 SizedBox(height: 2),
                 SelectableText(
                   'jan.svihalek00@gmail.com',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: AppColors.muted,
-                  ),
+                  style: TextStyle(fontSize: 12, color: AppColors.muted),
                 ),
               ],
             ),
@@ -735,17 +728,17 @@ class _SubscriptionTile extends StatelessWidget {
         final subtitle = loading
             ? 'Načítám…'
             : !status.hasAccess
-                ? 'Žádné aktivní předplatné'
-                : status.isTrialing
-                    ? 'Zkušební období'
-                    : 'Aktivní';
+            ? 'Žádné aktivní předplatné'
+            : status.isTrialing
+            ? 'Zkušební období'
+            : 'Aktivní';
 
         return InkWell(
           onTap: loading
               ? null
               : () => status.hasAccess == true
-                  ? _openManage(context)
-                  : _openPaywall(context),
+                    ? _openManage(context)
+                    : _openPaywall(context),
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
             child: Row(
