@@ -2,20 +2,25 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:provider/provider.dart';
+import 'package:purchases_flutter/purchases_flutter.dart';
 import 'firebase_options.dart';
 import 'models/payment_profile.dart';
+import 'models/subscription.dart';
 import 'services/auth_service.dart';
 import 'services/credential_storage.dart';
 import 'services/firestore_service.dart';
+import 'services/subscription_service.dart';
 import 'screens/auth_screen.dart';
 import 'screens/main_screen.dart';
 import 'screens/onboarding_screen.dart';
+import 'screens/paywall_screen.dart';
 import 'screens/worker_login_screen.dart';
 import 'theme/app_theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  await SubscriptionService.configure();
   runApp(const MyApp());
 }
 
@@ -69,7 +74,6 @@ class _AppEntryState extends State<_AppEntry> {
     final name = await storage.getWorkerName();
     final pinHash = await storage.getWorkerPinHash();
 
-    // Zobrazíme PIN screen okamžitě
     if (mounted) {
       setState(() {
         _isWorkerDevice = true;
@@ -80,7 +84,6 @@ class _AppEntryState extends State<_AppEntry> {
       });
     }
 
-    // Auth a Firestore check jedou na pozadí
     _verifyWorkerAsync(ownerId, pinHash, storage);
   }
 
@@ -157,14 +160,25 @@ class _AppEntryState extends State<_AppEntry> {
   }
 }
 
-class _ProfileChecker extends StatelessWidget {
+class _ProfileChecker extends StatefulWidget {
   final String userId;
   const _ProfileChecker({required this.userId});
 
   @override
+  State<_ProfileChecker> createState() => _ProfileCheckerState();
+}
+
+class _ProfileCheckerState extends State<_ProfileChecker> {
+  @override
+  void initState() {
+    super.initState();
+    SubscriptionService.logIn(widget.userId);
+  }
+
+  @override
   Widget build(BuildContext context) {
     return StreamBuilder<List<PaymentProfile>>(
-      stream: FirestoreService().profilesStream(userId),
+      stream: FirestoreService().profilesStream(widget.userId),
       builder: (context, snapshot) {
         if (!snapshot.hasData &&
             snapshot.connectionState == ConnectionState.waiting) {
@@ -174,10 +188,59 @@ class _ProfileChecker extends StatelessWidget {
         }
         final profiles = snapshot.data ?? [];
         if (profiles.isEmpty) {
-          return OnboardingScreen(userId: userId);
+          return OnboardingScreen(userId: widget.userId);
         }
-        return MainScreen(userId: userId);
+        return _SubscriptionGate(userId: widget.userId);
       },
     );
+  }
+}
+
+class _SubscriptionGate extends StatefulWidget {
+  final String userId;
+  const _SubscriptionGate({required this.userId});
+
+  @override
+  State<_SubscriptionGate> createState() => _SubscriptionGateState();
+}
+
+class _SubscriptionGateState extends State<_SubscriptionGate> {
+  SubscriptionStatus _status = SubscriptionStatus.none;
+  bool _loading = true;
+
+  late final CustomerInfoUpdateListener _listener;
+
+  @override
+  void initState() {
+    super.initState();
+    _listener = (info) {
+      if (mounted) {
+        setState(() => _status = SubscriptionService.statusFromInfo(info));
+      }
+    };
+    Purchases.addCustomerInfoUpdateListener(_listener);
+    _loadStatus();
+  }
+
+  @override
+  void dispose() {
+    Purchases.removeCustomerInfoUpdateListener(_listener);
+    super.dispose();
+  }
+
+  Future<void> _loadStatus() async {
+    final status = await SubscriptionService.getStatus();
+    if (mounted) setState(() { _status = status; _loading = false; });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_loading) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+    if (_status.hasAccess) {
+      return MainScreen(userId: widget.userId);
+    }
+    return const PaywallScreen();
   }
 }

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+import '../models/subscription.dart';
 import '../models/worker.dart';
 import '../services/firestore_service.dart';
+import '../services/subscription_service.dart';
 import '../services/worker_service.dart';
 import '../theme/app_theme.dart';
 
@@ -13,34 +15,44 @@ class WorkersScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Zaměstnanci/Brigádníci')),
-      body: StreamBuilder<List<Worker>>(
-        stream: FirestoreService().workersStream(userId),
-        builder: (context, snapshot) {
-          final workers = snapshot.data ?? [];
-          return ListView(
-            padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
-            children: [
-              _InfoBanner(),
-              const SizedBox(height: 20),
-              if (workers.isEmpty)
-                _EmptyState()
-              else
-                ...workers.map((w) => _WorkerTile(
-                      worker: w,
-                      userId: userId,
-                    )),
-              const SizedBox(height: 20),
-              FilledButton.icon(
-                onPressed: () => _showAddWorkerDialog(context),
-                icon: const Icon(Icons.person_add_outlined),
-                label: const Text('Přidat zaměstnance/brigádníka'),
-                style: FilledButton.styleFrom(
-                  minimumSize: const Size(double.infinity, 52),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14)),
-                ),
-              ),
-            ],
+      body: FutureBuilder<SubscriptionStatus>(
+        future: SubscriptionService.getStatus(),
+        builder: (context, subSnap) {
+          final status = subSnap.data ?? SubscriptionStatus.none;
+          return StreamBuilder<List<Worker>>(
+            stream: FirestoreService().workersStream(userId),
+            builder: (context, snapshot) {
+              final workers = snapshot.data ?? [];
+              final atLimit = !status.isPro && workers.length >= 3;
+
+              return ListView(
+                padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+                children: [
+                  _InfoBanner(),
+                  const SizedBox(height: 20),
+                  if (workers.isEmpty)
+                    _EmptyState()
+                  else
+                    ...workers.map((w) => _WorkerTile(
+                          worker: w,
+                          userId: userId,
+                        )),
+                  const SizedBox(height: 20),
+                  if (atLimit) _LimitBanner(),
+                  FilledButton.icon(
+                    onPressed:
+                        atLimit ? null : () => _showAddWorkerDialog(context),
+                    icon: const Icon(Icons.person_add_outlined),
+                    label: const Text('Přidat zaměstnance/brigádníka'),
+                    style: FilledButton.styleFrom(
+                      minimumSize: const Size(double.infinity, 52),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14)),
+                    ),
+                  ),
+                ],
+              );
+            },
           );
         },
       ),
@@ -117,7 +129,8 @@ class WorkersScreen extends StatelessWidget {
                   : () async {
                       if (!formKey.currentState!.validate()) return;
                       setState(() => saving = true);
-                      final pinHash = WorkerService.hashPin(userId, pinCtrl.text);
+                      final pinHash =
+                          WorkerService.hashPin(userId, pinCtrl.text);
                       await FirestoreService().addWorker(
                         userId,
                         Worker(
@@ -145,6 +158,35 @@ class WorkersScreen extends StatelessWidget {
     nameCtrl.dispose();
     pinCtrl.dispose();
     pin2Ctrl.dispose();
+  }
+}
+
+class _LimitBanner extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFFBEB),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFFDE68A)),
+      ),
+      child: const Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(Icons.info_outline, size: 18, color: AppColors.warn),
+          SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              'Dosáhli jste limitu 3 brigádníků plánu Basic. Pro přidání dalších přejděte na plán Pro.',
+              style: TextStyle(
+                  fontSize: 13, color: AppColors.ink700, height: 1.4),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 
@@ -184,7 +226,8 @@ class _EmptyState extends StatelessWidget {
         children: [
           Icon(Icons.people_outline, size: 48, color: Colors.grey.shade300),
           const SizedBox(height: 12),
-          const Text('Žádní zaměstnanci/brigádníci', style: TextStyle(color: AppColors.muted)),
+          const Text('Žádní zaměstnanci/brigádníci',
+              style: TextStyle(color: AppColors.muted)),
         ],
       ),
     );
@@ -206,7 +249,8 @@ class _WorkerTile extends StatelessWidget {
         borderRadius: BorderRadius.circular(14),
       ),
       child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
         leading: Container(
           width: 40,
           height: 40,
@@ -233,7 +277,8 @@ class _WorkerTile extends StatelessWidget {
               onPressed: () => _showQrDialog(context),
             ),
             IconButton(
-              icon: const Icon(Icons.delete_outline, color: AppColors.danger),
+              icon:
+                  const Icon(Icons.delete_outline, color: AppColors.danger),
               tooltip: 'Odebrat',
               onPressed: () => _confirmDelete(context),
             ),
@@ -305,6 +350,5 @@ class _WorkerTile extends StatelessWidget {
     }
   }
 
-  String _formatDate(DateTime dt) =>
-      '${dt.day}. ${dt.month}. ${dt.year}';
+  String _formatDate(DateTime dt) => '${dt.day}. ${dt.month}. ${dt.year}';
 }

@@ -1,15 +1,20 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 
+import '../models/subscription.dart';
 import '../models/worker.dart';
 import '../services/auth_service.dart';
 import '../services/biometric_service.dart';
 import '../services/credential_storage.dart';
 import '../services/firestore_service.dart';
+import '../services/subscription_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/logo_scan_brackets.dart';
 import 'items_screen.dart';
+import 'paywall_screen.dart';
 import 'profiles_screen.dart';
 import 'transactions_screen.dart';
 import 'workers_screen.dart';
@@ -94,7 +99,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ],
       ),
     );
-    if (confirmed == true) await authService.signOut();
+    if (confirmed == true) {
+      await SubscriptionService.logOut();
+      await authService.signOut();
+    }
   }
 
   @override
@@ -110,6 +118,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
         children: [
           // ── Účet ────────────────────────────────────────────────────────
           _AccountCard(user: user, userId: widget.userId),
+
+          const SizedBox(height: 32),
+
+          // ── Předplatné ──────────────────────────────────────────────────
+          const _SectionHeader('Předplatné'),
+          _TileGroup(
+            children: [
+              _SubscriptionTile(userId: widget.userId),
+            ],
+          ),
 
           const SizedBox(height: 32),
 
@@ -680,6 +698,97 @@ class _SignOutButton extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+class _SubscriptionTile extends StatelessWidget {
+  final String userId;
+  const _SubscriptionTile({required this.userId});
+
+  Future<void> _openManage(BuildContext context) async {
+    final url = Platform.isIOS
+        ? 'https://apps.apple.com/account/subscriptions'
+        : 'https://play.google.com/store/account/subscriptions';
+    final uri = Uri.parse(url);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    }
+  }
+
+  Future<void> _openPaywall(BuildContext context) async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const PaywallScreen()),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<SubscriptionStatus>(
+      future: SubscriptionService.getStatus(),
+      builder: (context, snapshot) {
+        final status = snapshot.data;
+        final loading = status == null;
+
+        final planLabel = loading ? '…' : status.displayName;
+        final subtitle = loading
+            ? 'Načítám…'
+            : !status.hasAccess
+                ? 'Žádné aktivní předplatné'
+                : status.isTrialing
+                    ? 'Zkušební období'
+                    : 'Aktivní';
+
+        return InkWell(
+          onTap: loading
+              ? null
+              : () => status.hasAccess == true
+                  ? _openManage(context)
+                  : _openPaywall(context),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+            child: Row(
+              children: [
+                const _IconBubble(icon: Icons.workspace_premium_outlined),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        planLabel,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 15,
+                          color: AppColors.heading,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        subtitle,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: status?.hasAccess == true
+                              ? AppColors.success
+                              : AppColors.muted,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Icon(
+                  status?.hasAccess == true
+                      ? Icons.open_in_new
+                      : Icons.chevron_right,
+                  color: AppColors.label,
+                  size: 20,
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }
