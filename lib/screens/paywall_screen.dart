@@ -35,13 +35,21 @@ class _PaywallScreenState extends State<PaywallScreen> {
 
   Future<void> _loadOfferings() async {
     setState(() => _loading = true);
-    final offerings = await SubscriptionService.getOfferings();
-    final pkgs = offerings?.current?.availablePackages.map((p) => p.identifier).toList();
+    String debug = '';
+    Offerings? offerings;
+    try {
+      offerings = await Purchases.getOfferings();
+      final all = offerings.all.keys.toList();
+      final pkgs = offerings.current?.availablePackages.map((p) => p.identifier).toList();
+      debug = 'all offerings: $all\ncurrent: ${offerings.current?.identifier ?? "null"}\npkgs: $pkgs';
+    } catch (e) {
+      debug = 'ERROR: $e';
+    }
     if (mounted) {
       setState(() {
         _offerings = offerings;
         _loading = false;
-        _debugInfo = 'offering: ${offerings?.current?.identifier ?? "null"}\npkgs: $pkgs';
+        _debugInfo = debug;
       });
     }
   }
