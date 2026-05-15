@@ -72,7 +72,11 @@ class _QrDisplayScreenState extends State<QrDisplayScreen> {
       '${widget.amount.toStringAsFixed(2).replaceAll('.', ',')} Kč';
 
   void _onHotovo() {
-    setState(() => _awaitingConfirmation = true);
+    if (widget.profile.requireCustomerConfirmation) {
+      setState(() => _awaitingConfirmation = true);
+    } else {
+      _markPaid();
+    }
   }
 
   Future<void> _onCustomerConfirmed() async {

@@ -30,6 +30,7 @@ class _ProfileFormScreenState extends State<ProfileFormScreen> {
   late final TextEditingController _ssCtrl;
   late final TextEditingController _ksCtrl;
   bool _isSaving = false;
+  bool _requireCustomerConfirmation = false;
 
   @override
   void initState() {
@@ -46,6 +47,7 @@ class _ProfileFormScreenState extends State<ProfileFormScreen> {
     _vsCtrl = TextEditingController(text: p?.variableSymbol ?? '');
     _ssCtrl = TextEditingController(text: p?.specificSymbol ?? '');
     _ksCtrl = TextEditingController(text: p?.constantSymbol ?? '');
+    _requireCustomerConfirmation = p?.requireCustomerConfirmation ?? false;
   }
 
   @override
@@ -81,6 +83,7 @@ class _ProfileFormScreenState extends State<ProfileFormScreen> {
         specificSymbol: _ssCtrl.text.trim().isNotEmpty ? _ssCtrl.text.trim() : null,
         constantSymbol: _ksCtrl.text.trim().isNotEmpty ? _ksCtrl.text.trim() : null,
         createdAt: widget.profile?.createdAt ?? DateTime.now(),
+        requireCustomerConfirmation: _requireCustomerConfirmation,
       );
 
       if (widget.profile == null) {
@@ -232,7 +235,17 @@ class _ProfileFormScreenState extends State<ProfileFormScreen> {
               keyboardType: TextInputType.number,
               validator: _symbolValidator,
             ),
-            const SizedBox(height: 32),
+            const SizedBox(height: 24),
+            _SectionLabel('Chování při platbě'),
+            SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              secondary: const Icon(Icons.how_to_reg_outlined),
+              title: const Text('Vyžadovat potvrzení od zákazníka'),
+              subtitle: const Text('Po stisknutí Hotovo zákazník potvrdí platbu na displeji'),
+              value: _requireCustomerConfirmation,
+              onChanged: (v) => setState(() => _requireCustomerConfirmation = v),
+            ),
+            const SizedBox(height: 16),
             FilledButton.icon(
               onPressed: _isSaving ? null : _save,
               icon: _isSaving

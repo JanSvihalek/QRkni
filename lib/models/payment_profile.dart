@@ -12,6 +12,7 @@ class PaymentProfile {
   final String? specificSymbol;
   final String? constantSymbol;
   final DateTime createdAt;
+  final bool requireCustomerConfirmation;
 
   const PaymentProfile({
     this.id,
@@ -25,6 +26,7 @@ class PaymentProfile {
     this.specificSymbol,
     this.constantSymbol,
     required this.createdAt,
+    this.requireCustomerConfirmation = false,
   });
 
   /// Generuje SPAYD řetězec pro český QR platební kód.
@@ -91,6 +93,7 @@ class PaymentProfile {
       if (variableSymbol != null && variableSymbol!.isNotEmpty) 'variableSymbol': variableSymbol,
       if (specificSymbol != null && specificSymbol!.isNotEmpty) 'specificSymbol': specificSymbol,
       if (constantSymbol != null && constantSymbol!.isNotEmpty) 'constantSymbol': constantSymbol,
+      'requireCustomerConfirmation': requireCustomerConfirmation,
       'createdAt': Timestamp.fromDate(createdAt),
       'updatedAt': FieldValue.serverTimestamp(),
     };
@@ -110,6 +113,7 @@ class PaymentProfile {
       specificSymbol: data['specificSymbol'] as String?,
       constantSymbol: data['constantSymbol'] as String?,
       createdAt: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
+      requireCustomerConfirmation: data['requireCustomerConfirmation'] as bool? ?? false,
     );
   }
 }
