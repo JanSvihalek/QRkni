@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Zásady ochrany osobních údajů – QRkni</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #f9fafb;
+      color: #111827;
+      line-height: 1.7;
+      padding: 0 16px 64px;
+    }
+    header {
+      background: #fff;
+      border-bottom: 1px solid #e5e7eb;
+      padding: 20px 0;
+      margin-bottom: 40px;
+    }
+    .header-inner {
+      max-width: 720px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .logo {
+      font-size: 20px;
+      font-weight: 700;
+      color: #1d4ed8;
+      text-decoration: none;
+      letter-spacing: -0.4px;
+    }
+    .container {
+      max-width: 720px;
+      margin: 0 auto;
+      background: #fff;
+      border: 1px solid #e5e7eb;
+      border-radius: 16px;
+      padding: 40px 48px;
+    }
+    h1 {
+      font-size: 26px;
+      font-weight: 700;
+      color: #111827;
+      letter-spacing: -0.5px;
+      margin-bottom: 6px;
+    }
+    .updated {
+      font-size: 13px;
+      color: #6b7280;
+      margin-bottom: 36px;
+    }
+    h2 {
+      font-size: 17px;
+      font-weight: 600;
+      color: #111827;
+      margin: 32px 0 10px;
+    }
+    p { font-size: 15px; color: #374151; margin-bottom: 12px; }
+    ul { font-size: 15px; color: #374151; padding-left: 22px; margin-bottom: 12px; }
+    li { margin-bottom: 6px; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+      margin-bottom: 16px;
+    }
+    th {
+      text-align: left;
+      background: #f3f4f6;
+      padding: 10px 12px;
+      color: #374151;
+      font-weight: 600;
+      border: 1px solid #e5e7eb;
+    }
+    td {
+      padding: 10px 12px;
+      border: 1px solid #e5e7eb;
+      color: #374151;
+      vertical-align: top;
+    }
+    a { color: #1d4ed8; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .divider {
+      border: none;
+      border-top: 1px solid #e5e7eb;
+      margin: 36px 0;
+    }
+    .chip {
+      display: inline-block;
+      background: #eff6ff;
+      color: #1d4ed8;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 20px;
+      margin-right: 4px;
+    }
+    @media (max-width: 600px) {
+      .container { padding: 28px 20px; border-radius: 0; border-left: none; border-right: none; }
+      table { font-size: 13px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-inner">
+      <a class="logo" href="/">QRkni</a>
+    </div>
+  </header>
+
+  <div class="container">
+    <h1>Zásady ochrany osobních údajů</h1>
+    <p class="updated">Poslední aktualizace: 15. května 2026</p>
+
+    <p>Tyto zásady ochrany osobních údajů popisují, jaké osobní údaje aplikace QRkni zpracovává, za jakým účelem a jaká máte práva. Zpracování probíhá v souladu s Nařízením (EU) 2016/679 (GDPR) a příslušnými národními právními předpisy.</p>
+
+    <h2>1. Správce osobních údajů</h2>
+    <p>
+      <strong>Jan Svihálek</strong><br>
+      E-mail: <a href="mailto:jan.svihalek00@gmail.com">jan.svihalek00@gmail.com</a>
+    </p>
+    <p>Nejmenujeme pověřence pro ochranu osobních údajů (DPO), neboť zpracování osobních údajů nepodléhá povinnosti jeho jmenování.</p>
+
+    <h2>2. Jaké údaje zpracováváme</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Kategorie dat</th>
+          <th>Konkrétní údaje</th>
+          <th>Zdroj</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="chip">Účet</span></td>
+          <td>E-mailová adresa, identifikátor přihlášení (Apple ID / Google)</td>
+          <td>Uživatel při registraci</td>
+        </tr>
+        <tr>
+          <td><span class="chip">Platební profily</span></td>
+          <td>IBAN, BIC, jméno příjemce, název profilu</td>
+          <td>Uživatel v aplikaci</td>
+        </tr>
+        <tr>
+          <td><span class="chip">Katalog položek</span></td>
+          <td>Název a cena položek</td>
+          <td>Uživatel v aplikaci</td>
+        </tr>
+        <tr>
+          <td><span class="chip">Zaměstnanci</span></td>
+          <td>Jméno zaměstnance/brigádníka, hashovaný PIN kód, čas posledního přihlášení</td>
+          <td>Uživatel (zaměstnavatel) v aplikaci</td>
+        </tr>
+        <tr>
+          <td><span class="chip">Historie transakcí</span></td>
+          <td>Čas generování QR kódu, vybraná položka, částka</td>
+          <td>Generováno automaticky při použití</td>
+        </tr>
+        <tr>
+          <td><span class="chip">Nastavení</span></td>
+          <td>Preference aplikace (jas, orientace QR kódu, biometrika)</td>
+          <td>Uživatel v nastavení</td>
+        </tr>
+      </tbody>
+    </table>
+    <p>Aplikace <strong>nesbírá</strong> citlivé osobní údaje, neprovádí profilování ani nepoužívá data pro reklamní účely.</p>
+
+    <h2>3. Účel a právní základ zpracování</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Účel</th>
+          <th>Právní základ (GDPR)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Poskytování funkcí aplikace (generování QR kódů, správa profilů)</td>
+          <td>Plnění smlouvy – čl. 6 odst. 1 písm. b)</td>
+        </tr>
+        <tr>
+          <td>Správa předplatného a přístupu k aplikaci</td>
+          <td>Plnění smlouvy – čl. 6 odst. 1 písm. b)</td>
+        </tr>
+        <tr>
+          <td>Zabezpečení a prevence podvodů</td>
+          <td>Oprávněný zájem – čl. 6 odst. 1 písm. f)</td>
+        </tr>
+        <tr>
+          <td>Plnění zákonných povinností (uchovávání záznamů)</td>
+          <td>Právní povinnost – čl. 6 odst. 1 písm. c)</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>4. Příjemci osobních údajů</h2>
+    <p>Vaše data sdílíme pouze s následujícími technologickými poskytovateli nezbytně nutnými pro provoz aplikace:</p>
+    <ul>
+      <li>
+        <strong>Google LLC / Firebase</strong> – autentizace uživatelů a cloudové úložiště dat (Firestore).
+        <a href="https://firebase.google.com/support/privacy" target="_blank">Zásady ochrany údajů Firebase →</a>
+      </li>
+      <li>
+        <strong>RevenueCat, Inc.</strong> – správa předplatného a ověřování plateb.
+        <a href="https://www.revenuecat.com/privacy" target="_blank">Zásady ochrany údajů RevenueCat →</a>
+      </li>
+      <li>
+        <strong>Apple Inc.</strong> – zpracování plateb v App Store a přihlášení přes Apple ID.
+        <a href="https://www.apple.com/legal/privacy/cs/" target="_blank">Zásady ochrany údajů Apple →</a>
+      </li>
+    </ul>
+    <p>Data neprodáváme ani nesdílíme s reklamními sítěmi ani jinými třetími stranami.</p>
+
+    <h2>5. Předávání dat mimo EU</h2>
+    <p>Výše uvedení poskytovatelé mohou zpracovávat data na serverech umístěných mimo Evropský hospodářský prostor (zejména v USA). Přenos probíhá na základě standardních smluvních doložek schválených Evropskou komisí nebo v souladu s jiným mechanismem zajišťujícím odpovídající úroveň ochrany osobních údajů.</p>
+
+    <h2>6. Doba uchování dat</h2>
+    <ul>
+      <li><strong>Data účtu a aplikace</strong> – po dobu trvání účtu. Smazáním účtu dojde k odstranění dat.</li>
+      <li><strong>Historie transakcí</strong> – max. 3 roky od záznamu, poté automaticky smazáno.</li>
+      <li><strong>Záznamy o předplatném</strong> – po dobu nezbytnou ke splnění zákonných povinností (typicky 5 let dle daňových předpisů).</li>
+    </ul>
+
+    <h2>7. Vaše práva</h2>
+    <p>Jako subjekt údajů máte za podmínek GDPR následující práva:</p>
+    <ul>
+      <li><strong>Přístup</strong> – právo získat potvrzení, zda zpracováváme vaše osobní údaje, a přístup k nim.</li>
+      <li><strong>Oprava</strong> – právo na opravu nepřesných nebo doplnění neúplných údajů.</li>
+      <li><strong>Výmaz</strong> – právo na smazání údajů („právo být zapomenut"), není-li dán důvod pro jejich další uchování.</li>
+      <li><strong>Omezení zpracování</strong> – právo požadovat omezení zpracování v zákonem stanovených případech.</li>
+      <li><strong>Přenositelnost</strong> – právo obdržet údaje ve strukturovaném, strojově čitelném formátu.</li>
+      <li><strong>Námitka</strong> – právo vznést námitku proti zpracování na základě oprávněného zájmu.</li>
+    </ul>
+    <p>Svá práva uplatňujte na: <a href="mailto:jan.svihalek00@gmail.com">jan.svihalek00@gmail.com</a>. Na vaši žádost odpovíme nejpozději do 30 dnů.</p>
+
+    <h2>8. Smazání účtu</h2>
+    <p>Účet a veškerá s ním spojená data lze smazat přímo v aplikaci (Nastavení → Smazat účet) nebo zasláním žádosti na <a href="mailto:jan.svihalek00@gmail.com">jan.svihalek00@gmail.com</a>.</p>
+
+    <h2>9. Bezpečnost</h2>
+    <p>Data jsou ukládána v Google Firebase Firestore s přístupem chráněným autentizací. PIN kódy zaměstnanců jsou ukládány výhradně ve formě hashe (nikdy v čitelné podobě). Přenášená data jsou šifrována protokolem TLS.</p>
+
+    <h2>10. Stížnosti</h2>
+    <p>Pokud se domníváte, že zpracování vašich osobních údajů porušuje GDPR, máte právo podat stížnost u příslušného dozorového úřadu:</p>
+    <ul>
+      <li>
+        <strong>Česká republika:</strong> Úřad pro ochranu osobních údajů (ÚOOÚ)<br>
+        <a href="https://www.uoou.cz" target="_blank">www.uoou.cz</a>
+      </li>
+      <li>
+        <strong>Slovenská republika:</strong> Úrad na ochranu osobných údajov SR<br>
+        <a href="https://www.dataprotection.gov.sk" target="_blank">www.dataprotection.gov.sk</a>
+      </li>
+    </ul>
+
+    <h2>11. Změny zásad</h2>
+    <p>Tyto zásady ochrany osobních údajů můžeme kdykoli aktualizovat. O podstatných změnách budeme informovat prostřednictvím aplikace nebo e-mailem. Datum poslední aktualizace je vždy uvedeno v záhlaví dokumentu.</p>
+
+    <hr class="divider">
+    <p style="font-size:13px; color:#9ca3af; text-align:center;">
+      &copy; 2026 QRkni &nbsp;·&nbsp; <a href="/terms">Podmínky použití</a>
+    </p>
+  </div>
+</body>
+</html>

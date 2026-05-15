@@ -229,6 +229,31 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
           const SizedBox(height: 32),
 
+          // ── Právní informace ────────────────────────────────────────────
+          const _SectionHeader('Právní informace'),
+          _TileGroup(
+            children: [
+              _NavTile(
+                icon: Icons.description_outlined,
+                title: 'Podmínky použití',
+                onTap: () => launchUrl(
+                  Uri.parse('https://qrkni.app/terms'),
+                  mode: LaunchMode.externalApplication,
+                ),
+              ),
+              _NavTile(
+                icon: Icons.privacy_tip_outlined,
+                title: 'Ochrana osobních údajů',
+                onTap: () => launchUrl(
+                  Uri.parse('https://qrkni.app/privacy'),
+                  mode: LaunchMode.externalApplication,
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 32),
+
           // ── Odhlášení ───────────────────────────────────────────────────
           _SignOutButton(onPressed: () => _confirmSignOut(authService)),
 
@@ -251,7 +276,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
                 SizedBox(height: 4),
                 Text(
-                  'v2.9.0',
+                  'v2.9.1',
                   style: TextStyle(
                     fontSize: 11,
                     color: AppColors.label,

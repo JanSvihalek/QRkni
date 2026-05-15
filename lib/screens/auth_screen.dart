@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../services/auth_service.dart';
 import '../services/biometric_service.dart';
 import '../services/credential_storage.dart';
@@ -800,8 +801,33 @@ class _AuthScreenState extends State<AuthScreen> {
                   ),
                 ),
               ],
+              const SizedBox(height: 32),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  _legalLink('Podmínky použití', 'https://qrkni.app/terms'),
+                  const Text('  ·  ', style: TextStyle(fontSize: 12, color: _labelColor)),
+                  _legalLink('Ochrana soukromí', 'https://qrkni.app/privacy'),
+                ],
+              ),
+              const SizedBox(height: 8),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _legalLink(String text, String url) {
+    return GestureDetector(
+      onTap: () => launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication),
+      child: Text(
+        text,
+        style: const TextStyle(
+          fontSize: 12,
+          color: _labelColor,
+          decoration: TextDecoration.underline,
+          decorationColor: _labelColor,
         ),
       ),
     );
