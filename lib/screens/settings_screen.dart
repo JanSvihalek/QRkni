@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
@@ -250,7 +251,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
                 SizedBox(height: 4),
                 Text(
-                  'v2.8.9',
+                  'v2.9.0',
                   style: TextStyle(
                     fontSize: 11,
                     color: AppColors.label,
@@ -692,6 +693,223 @@ class _SignOutButton extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+// ── Worker nastavení ──────────────────────────────────────────────────────────
+
+class WorkerSettingsScreen extends StatefulWidget {
+  final String ownerUserId;
+  final String workerName;
+  final VoidCallback onUnpaired;
+
+  const WorkerSettingsScreen({
+    super.key,
+    required this.ownerUserId,
+    required this.workerName,
+    required this.onUnpaired,
+  });
+
+  @override
+  State<WorkerSettingsScreen> createState() => _WorkerSettingsScreenState();
+}
+
+class _WorkerSettingsScreenState extends State<WorkerSettingsScreen> {
+  bool _autoBrightness = true;
+  bool _flipQr = false;
+  bool _biometricEnabled = false;
+
+  @override
+  void initState() {
+    super.initState();
+    FirestoreService().loadSettings(widget.ownerUserId).then((s) {
+      if (!mounted) return;
+      setState(() {
+        _autoBrightness = s['auto_brightness'] as bool? ?? true;
+        _flipQr = s['flip_qr'] as bool? ?? false;
+        _biometricEnabled = s['biometric_enabled'] as bool? ?? false;
+      });
+    });
+  }
+
+  Future<void> _saveAll() async {
+    await FirestoreService().saveSettings(widget.ownerUserId, {
+      'auto_brightness': _autoBrightness,
+      'flip_qr': _flipQr,
+      'biometric_enabled': _biometricEnabled,
+    });
+  }
+
+  Future<void> _confirmUnpair() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Odregistrovat zařízení?'),
+        content: const Text(
+          'Toto zařízení přestane být spárováno. Pro opětovné použití bude nutné naskenovat QR kód znovu.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Zrušit'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: TextButton.styleFrom(foregroundColor: AppColors.danger),
+            child: const Text('Odregistrovat'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed == true) {
+      await CredentialStorage().unpairWorkerDevice();
+      await FirebaseAuth.instance.signOut();
+      widget.onUnpaired();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final initials = _workerInitials(widget.workerName);
+    return Scaffold(
+      backgroundColor: AppColors.surface,
+      appBar: AppBar(title: const Text('Nastavení')),
+      body: ListView(
+        padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
+        children: [
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: AppColors.surface,
+              border: Border.all(color: AppColors.border, width: 1.5),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  width: 56,
+                  height: 56,
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [AppColors.primaryHover, AppColors.primaryBlue],
+                    ),
+                    borderRadius: BorderRadius.circular(18),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.primaryBlue.withValues(alpha: 0.3),
+                        blurRadius: 16,
+                        offset: const Offset(0, 6),
+                      ),
+                    ],
+                  ),
+                  child: Center(
+                    child: Text(
+                      initials,
+                      style: GoogleFonts.spaceGrotesk(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white,
+                        letterSpacing: -0.5,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        widget.workerName,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 14,
+                          color: AppColors.heading,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 4),
+                      const Text(
+                        'Zaměstnanecký/Brigádnický přístup',
+                        style: TextStyle(fontSize: 12, color: AppColors.muted),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 32),
+
+          const _SectionHeader('Aplikace'),
+          _TileGroup(
+            children: [
+              _SwitchTile(
+                icon: Icons.brightness_high_outlined,
+                title: 'Maximální jas při QR kódu',
+                subtitle: 'Při zobrazení QR kódu zvýší jas obrazovky',
+                value: _autoBrightness,
+                onChanged: (v) {
+                  setState(() => _autoBrightness = v);
+                  _saveAll();
+                },
+              ),
+              _SwitchTile(
+                icon: Icons.screen_rotation_outlined,
+                title: 'Otočit QR kód',
+                subtitle:
+                    'Zobrazí QR kód vzhůru nohama — zákazník ho vidí správně',
+                value: _flipQr,
+                onChanged: (v) {
+                  setState(() => _flipQr = v);
+                  _saveAll();
+                },
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 32),
+
+          SizedBox(
+            width: double.infinity,
+            child: TextButton.icon(
+              onPressed: _confirmUnpair,
+              icon: const Icon(
+                Icons.link_off,
+                size: 18,
+                color: AppColors.danger,
+              ),
+              label: const Text(
+                'Odregistrovat toto zařízení',
+                style: TextStyle(
+                  color: AppColors.danger,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 15,
+                ),
+              ),
+              style: TextButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                backgroundColor: AppColors.surface,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                  side: const BorderSide(color: AppColors.border, width: 1.5),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _workerInitials(String name) {
+    final parts = name.trim().split(RegExp(r'\s+'));
+    if (parts.isEmpty || parts.first.isEmpty) return '?';
+    if (parts.length == 1) return parts[0][0].toUpperCase();
+    return '${parts[0][0]}${parts[1][0]}'.toUpperCase();
   }
 }
 

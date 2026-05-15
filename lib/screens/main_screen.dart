@@ -9,11 +9,15 @@ import 'settings_screen.dart';
 class MainScreen extends StatefulWidget {
   final String userId;
   final bool isWorkerMode;
+  final String? workerName;
+  final VoidCallback? onUnpaired;
 
   const MainScreen({
     super.key,
     required this.userId,
     this.isWorkerMode = false,
+    this.workerName,
+    this.onUnpaired,
   });
 
   @override
@@ -25,7 +29,14 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
 
   late final List<Widget> _screens = [
     HomeScreen(userId: widget.userId, isWorkerMode: widget.isWorkerMode),
-    if (!widget.isWorkerMode) SettingsScreen(userId: widget.userId),
+    if (!widget.isWorkerMode)
+      SettingsScreen(userId: widget.userId)
+    else if (widget.workerName != null)
+      WorkerSettingsScreen(
+        ownerUserId: widget.userId,
+        workerName: widget.workerName!,
+        onUnpaired: widget.onUnpaired ?? () {},
+      ),
   ];
 
   @override
@@ -84,7 +95,7 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
                       selectedIcon: Icon(Icons.qr_code_2),
                       label: 'QR platby',
                     ),
-                    if (!widget.isWorkerMode)
+                    if (!widget.isWorkerMode || widget.workerName != null)
                       const NavigationDestination(
                         icon: Icon(Icons.settings_outlined),
                         selectedIcon: Icon(Icons.settings),

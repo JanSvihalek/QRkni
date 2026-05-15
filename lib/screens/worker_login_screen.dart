@@ -113,6 +113,8 @@ class _WorkerLoginScreenState extends State<WorkerLoginScreen> {
           builder: (_) => MainScreen(
             userId: widget.ownerUserId,
             isWorkerMode: true,
+            workerName: widget.workerName,
+            onUnpaired: widget.onUnpaired,
           ),
         ),
       );
