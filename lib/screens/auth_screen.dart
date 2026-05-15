@@ -532,28 +532,27 @@ class _AuthScreenState extends State<AuthScreen> {
                   ),
                 ],
               ),
-              const SizedBox(height: 40),
+              const SizedBox(height: 24),
               Text(
                 _isLogin ? 'Vítej zpátky' : 'Vytvoř si účet',
                 style: GoogleFonts.spaceGrotesk(
-                  fontSize: 30,
+                  fontSize: 26,
                   fontWeight: FontWeight.w700,
-                  letterSpacing: -1,
+                  letterSpacing: -0.8,
                   color: _headingColor,
                   height: 1.1,
                 ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 6),
               const Text(
-                'Plať přes QR kód bez poplatků\n'
-                'Bez sdílení bankovního účtu s ostatními.',
+                'Plať přes QR kód bez poplatků · bez sdílení účtu.',
                 style: TextStyle(
-                  fontSize: 15,
+                  fontSize: 13,
                   color: _mutedText,
                   height: 1.4,
                 ),
               ),
-              const SizedBox(height: 32),
+              const SizedBox(height: 20),
 
               _fieldLabel('E-MAIL'),
               TextField(
@@ -562,7 +561,7 @@ class _AuthScreenState extends State<AuthScreen> {
                 keyboardType: TextInputType.emailAddress,
                 enabled: !_isLoading,
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 14),
 
               _fieldLabel('HESLO'),
               TextField(
@@ -678,7 +677,7 @@ class _AuthScreenState extends State<AuthScreen> {
                   ),
                 ),
               ],
-              const SizedBox(height: 12),
+              const SizedBox(height: 8),
 
               DecoratedBox(
                 decoration: BoxDecoration(
@@ -724,7 +723,7 @@ class _AuthScreenState extends State<AuthScreen> {
                 ),
               ),
 
-              const SizedBox(height: 24),
+              const SizedBox(height: 16),
               const Row(
                 children: [
                   Expanded(child: Divider(color: _borderColor)),
@@ -743,7 +742,7 @@ class _AuthScreenState extends State<AuthScreen> {
                   Expanded(child: Divider(color: _borderColor)),
                 ],
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 14),
 
               Row(
                 children: [
@@ -794,7 +793,7 @@ class _AuthScreenState extends State<AuthScreen> {
                 ],
               ),
 
-              const SizedBox(height: 32),
+              const SizedBox(height: 20),
               Center(
                 child: Wrap(
                   crossAxisAlignment: WrapCrossAlignment.center,
@@ -859,7 +858,7 @@ class _AuthScreenState extends State<AuthScreen> {
                   ),
                 ),
               ],
-              const SizedBox(height: 32),
+              const SizedBox(height: 16),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
