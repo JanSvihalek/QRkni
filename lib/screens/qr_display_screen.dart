@@ -37,6 +37,8 @@ class QrDisplayScreen extends StatefulWidget {
 class _QrDisplayScreenState extends State<QrDisplayScreen> {
   bool _saving = false;
   bool _flipQr = false;
+  bool _awaitingConfirmation = false;
+  bool _confirmed = false;
 
   @override
   void initState() {
@@ -69,6 +71,17 @@ class _QrDisplayScreenState extends State<QrDisplayScreen> {
   String get _formattedAmount =>
       '${widget.amount.toStringAsFixed(2).replaceAll('.', ',')} Kč';
 
+  void _onHotovo() {
+    setState(() => _awaitingConfirmation = true);
+  }
+
+  Future<void> _onCustomerConfirmed() async {
+    setState(() => _confirmed = true);
+    await Future.delayed(const Duration(milliseconds: 900));
+    if (!mounted) return;
+    await _markPaid();
+  }
+
   Future<void> _markPaid() async {
     setState(() => _saving = true);
     try {
@@ -87,12 +100,64 @@ class _QrDisplayScreenState extends State<QrDisplayScreen> {
     } catch (e) {
       debugPrint('addTransaction error: $e');
       if (mounted) {
-        setState(() => _saving = false);
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Chyba: $e')));
+        setState(() { _saving = false; _confirmed = false; });
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Chyba: $e')));
       }
     }
+  }
+
+  Widget _buildCustomerConfirmView() {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        const Icon(Icons.payment_outlined, size: 64, color: Colors.black45),
+        const SizedBox(height: 20),
+        const Text(
+          'Zaplatil/a jsi?',
+          style: TextStyle(fontSize: 28, fontWeight: FontWeight.w800, letterSpacing: -0.5),
+          textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: 8),
+        Text(
+          _formattedAmount,
+          style: const TextStyle(fontSize: 42, fontWeight: FontWeight.bold, letterSpacing: -1),
+        ),
+        const SizedBox(height: 36),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 40),
+          child: FilledButton.icon(
+            onPressed: _onCustomerConfirmed,
+            icon: const Icon(Icons.check_circle_outline, size: 24),
+            label: const Text('Ano, zaplatil/a jsem', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
+            style: FilledButton.styleFrom(
+              minimumSize: const Size(double.infinity, 64),
+              backgroundColor: Colors.green.shade600,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSuccessView() {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        const Icon(Icons.check_circle, size: 96, color: Colors.green),
+        const SizedBox(height: 20),
+        const Text(
+          'Platba potvrzena!',
+          style: TextStyle(fontSize: 28, fontWeight: FontWeight.w800, letterSpacing: -0.5),
+          textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: 8),
+        Text(
+          _formattedAmount,
+          style: TextStyle(fontSize: 36, fontWeight: FontWeight.bold, color: Colors.green.shade700, letterSpacing: -1),
+        ),
+      ],
+    );
   }
 
   @override
@@ -119,94 +184,96 @@ class _QrDisplayScreenState extends State<QrDisplayScreen> {
             Expanded(
               child: RotatedBox(
                 quarterTurns: _flipQr ? 2 : 0,
-                child: Column(
-                  children: [
-                    const Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                      child: Text(
-                        'Otevřete svou bankovní aplikaci a naskenujte QR kód',
-                        style: TextStyle(
-                          fontSize: 25,
-                          fontWeight: FontWeight.w900,
-                          color: Colors.black,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                    Expanded(
-                      child: LayoutBuilder(
-                        builder: (context, constraints) {
-                          final size = constraints.maxWidth < constraints.maxHeight
-                              ? constraints.maxWidth * 0.85
-                              : constraints.maxHeight * 0.85;
-                          return Center(
-                            child: QrImageView(
-                              data: _qrData,
-                              version: QrVersions.auto,
-                              size: size,
-                              backgroundColor: Colors.white,
-                              eyeStyle: const QrEyeStyle(
-                                eyeShape: QrEyeShape.square,
-                                color: Colors.black,
-                              ),
-                              dataModuleStyle: const QrDataModuleStyle(
-                                dataModuleShape: QrDataModuleShape.square,
-                                color: Colors.black,
-                              ),
-                              errorStateBuilder: (_, e) => const Center(
-                                child: Text(
-                                  'Chyba generování QR.\nZkontrolujte IBAN.',
-                                  textAlign: TextAlign.center,
-                                ),
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-                    // ── Částka a IBAN (zákazníkova část) ──────────────────
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(32, 12, 32, 16),
-                      child: Column(
+                child: _awaitingConfirmation
+                    ? (_confirmed ? _buildSuccessView() : _buildCustomerConfirmView())
+                    : Column(
                         children: [
-                          Text(
-                            _formattedAmount,
-                            style: const TextStyle(
-                              fontSize: 40,
-                              fontWeight: FontWeight.bold,
-                              letterSpacing: -1,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 10, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: Colors.grey.shade100,
-                              borderRadius: BorderRadius.circular(6),
-                            ),
+                          const Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                             child: Text(
-                              _formatIban(widget.profile.iban),
+                              'Otevřete svou bankovní aplikaci a naskenujte QR kód',
                               style: TextStyle(
-                                fontSize: 13,
-                                color: Colors.grey.shade700,
-                                letterSpacing: 0.5,
+                                fontSize: 25,
+                                fontWeight: FontWeight.w900,
+                                color: Colors.black,
                               ),
+                              textAlign: TextAlign.center,
                             ),
                           ),
-                          if (widget.profile.recipientName != null) ...[
-                            const SizedBox(height: 4),
-                            Text(
-                              widget.profile.recipientName!,
-                              style: TextStyle(
-                                  fontSize: 13, color: Colors.grey.shade500),
+                          Expanded(
+                            child: LayoutBuilder(
+                              builder: (context, constraints) {
+                                final size = constraints.maxWidth < constraints.maxHeight
+                                    ? constraints.maxWidth * 0.85
+                                    : constraints.maxHeight * 0.85;
+                                return Center(
+                                  child: QrImageView(
+                                    data: _qrData,
+                                    version: QrVersions.auto,
+                                    size: size,
+                                    backgroundColor: Colors.white,
+                                    eyeStyle: const QrEyeStyle(
+                                      eyeShape: QrEyeShape.square,
+                                      color: Colors.black,
+                                    ),
+                                    dataModuleStyle: const QrDataModuleStyle(
+                                      dataModuleShape: QrDataModuleShape.square,
+                                      color: Colors.black,
+                                    ),
+                                    errorStateBuilder: (_, e) => const Center(
+                                      child: Text(
+                                        'Chyba generování QR.\nZkontrolujte IBAN.',
+                                        textAlign: TextAlign.center,
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              },
                             ),
-                          ],
+                          ),
+                          // ── Částka a IBAN (zákazníkova část) ──────────────────
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(32, 12, 32, 16),
+                            child: Column(
+                              children: [
+                                Text(
+                                  _formattedAmount,
+                                  style: const TextStyle(
+                                    fontSize: 40,
+                                    fontWeight: FontWeight.bold,
+                                    letterSpacing: -1,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 10, vertical: 4),
+                                  decoration: BoxDecoration(
+                                    color: Colors.grey.shade100,
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                  child: Text(
+                                    _formatIban(widget.profile.iban),
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      color: Colors.grey.shade700,
+                                      letterSpacing: 0.5,
+                                    ),
+                                  ),
+                                ),
+                                if (widget.profile.recipientName != null) ...[
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    widget.profile.recipientName!,
+                                    style: TextStyle(
+                                        fontSize: 13, color: Colors.grey.shade500),
+                                  ),
+                                ],
+                              ],
+                            ),
+                          ),
                         ],
                       ),
-                    ),
-                  ],
-                ),
               ),
             ),
 
@@ -220,24 +287,30 @@ class _QrDisplayScreenState extends State<QrDisplayScreen> {
                   top: BorderSide(color: Colors.grey.shade100, width: 1),
                 ),
               ),
-              child: FilledButton.icon(
-                    onPressed: _saving ? null : _markPaid,
-                    icon: _saving
-                        ? const SizedBox(
-                            width: 18,
-                            height: 18,
-                            child: CircularProgressIndicator(
-                                strokeWidth: 2, color: Colors.white),
-                          )
-                        : const Icon(Icons.check_circle_outline),
-                    label: Text(_saving ? 'Ukládám…' : 'Hotovo/Zaplaceno'),
-                    style: FilledButton.styleFrom(
-                      minimumSize: const Size(double.infinity, 52),
-                      backgroundColor: Colors.green.shade600,
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14)),
+              child: _awaitingConfirmation
+                  ? OutlinedButton.icon(
+                      onPressed: _confirmed || _saving
+                          ? null
+                          : () => setState(() => _awaitingConfirmation = false),
+                      icon: const Icon(Icons.qr_code_2),
+                      label: const Text('Zpět na QR kód'),
+                      style: OutlinedButton.styleFrom(
+                        minimumSize: const Size(double.infinity, 52),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14)),
+                      ),
+                    )
+                  : FilledButton.icon(
+                      onPressed: _saving ? null : _onHotovo,
+                      icon: const Icon(Icons.check_circle_outline),
+                      label: const Text('Hotovo/Zaplaceno'),
+                      style: FilledButton.styleFrom(
+                        minimumSize: const Size(double.infinity, 52),
+                        backgroundColor: Colors.green.shade600,
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14)),
+                      ),
                     ),
-                  ),
             ),
           ],
         ),
