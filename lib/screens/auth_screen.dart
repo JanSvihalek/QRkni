@@ -805,9 +805,9 @@ class _AuthScreenState extends State<AuthScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  _legalLink('Podmínky použití', 'https://qrkni.app/terms'),
+                  _legalLink('Podmínky použití', 'https://qrkni-44ce9.web.app/terms'),
                   const Text('  ·  ', style: TextStyle(fontSize: 12, color: _labelColor)),
-                  _legalLink('Ochrana soukromí', 'https://qrkni.app/privacy'),
+                  _legalLink('Ochrana soukromí', 'https://qrkni-44ce9.web.app/privacy'),
                 ],
               ),
               const SizedBox(height: 8),
