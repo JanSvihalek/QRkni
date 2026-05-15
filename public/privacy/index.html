@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Zásady ochrany osobních údajů – QRkni</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --blue:        #1652F0;
+      --blue-hover:  #3B73FF;
+      --blue-faint:  #F2F6FF;
+      --blue-tint:   #E6EEFF;
+      --heading:     #0A1330;
+      --ink700:      #2A335A;
+      --muted:       #5B6386;
+      --label:       #858CAB;
+      --border:      #ECEEF5;
+      --border-str:  #D7DAE6;
+      --surface:     #FFFFFF;
+      --surface-alt: #F5F6FA;
+    }
+
+    body {
+      font-family: 'JetBrains Mono', 'SF Mono', monospace;
+      background: var(--surface-alt);
+      color: var(--ink700);
+      line-height: 1.7;
+      padding-bottom: 72px;
+    }
+
+    /* ── Header ── */
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0 24px;
+    }
+    .header-inner {
+      max-width: 760px;
+      margin: 0 auto;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .logo-link {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      text-decoration: none;
+    }
+    .logo-text {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 19px;
+      font-weight: 700;
+      color: var(--heading);
+      letter-spacing: -0.5px;
+    }
+
+    /* ── Page ── */
+    .page {
+      max-width: 760px;
+      margin: 32px auto 0;
+      padding: 0 16px;
+    }
+
+    /* ── Hero ── */
+    .hero {
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: 20px;
+      padding: 32px 40px 28px;
+      margin-bottom: 16px;
+    }
+    .hero-badge {
+      display: inline-block;
+      background: var(--blue-faint);
+      color: var(--blue);
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      padding: 3px 10px;
+      border-radius: 20px;
+      margin-bottom: 14px;
+    }
+    .hero h1 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--heading);
+      letter-spacing: -0.6px;
+      margin-bottom: 8px;
+    }
+    .hero-meta {
+      font-size: 13px;
+      color: var(--label);
+    }
+
+    /* ── Card ── */
+    .card {
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: 20px;
+      padding: 36px 40px;
+    }
+
+    /* ── Section labels ── */
+    .section-label {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--label);
+      margin: 36px 0 14px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+    .section-label:first-child { margin-top: 0; }
+
+    h2 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--heading);
+      margin: 28px 0 8px;
+    }
+    h2:first-child { margin-top: 0; }
+
+    p { font-size: 14px; color: var(--ink700); margin-bottom: 10px; line-height: 1.75; }
+    ul { font-size: 14px; color: var(--ink700); padding-left: 20px; margin-bottom: 10px; }
+    li { margin-bottom: 5px; line-height: 1.7; }
+
+    strong { color: var(--heading); font-weight: 500; }
+    a { color: var(--blue); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    /* ── Table ── */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      margin-bottom: 14px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    thead tr { background: var(--surface-alt); }
+    th {
+      text-align: left;
+      padding: 10px 14px;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      color: var(--muted);
+      border-bottom: 1px solid var(--border);
+    }
+    td {
+      padding: 10px 14px;
+      color: var(--ink700);
+      vertical-align: top;
+      border-bottom: 1px solid var(--border);
+    }
+    tr:last-child td { border-bottom: none; }
+
+    /* ── Chip ── */
+    .chip {
+      display: inline-block;
+      background: var(--blue-faint);
+      color: var(--blue);
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 20px;
+      white-space: nowrap;
+    }
+
+    /* ── Divider ── */
+    hr { border: none; border-top: 1px solid var(--border); margin: 32px 0; }
+
+    @media (max-width: 600px) {
+      .hero, .card { padding: 24px 20px; border-radius: 16px; }
+      .hero h1 { font-size: 22px; }
+      table { font-size: 12px; }
+      th, td { padding: 8px 10px; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <a class="logo-link" href="/">
+      <!-- QRkni scan-brackets logo -->
+      <svg width="28" height="28" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M1.7 18.4 L1.7 7.3 A5.6 5.6 0 0 1 7.3 1.7 L14.5 1.7"
+              stroke="#1652F0" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M25.5 1.7 L32.7 1.7 A5.6 5.6 0 0 1 38.3 7.3 L38.3 14.5"
+              stroke="#1652F0" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M1.7 25.5 L1.7 32.7 A5.6 5.6 0 0 0 7.3 38.3 L14.5 38.3"
+              stroke="#1652F0" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M25.5 38.3 L32.7 38.3 A5.6 5.6 0 0 0 38.3 32.7 L38.3 25.5"
+              stroke="#1652F0" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/>
+        <rect x="13.71" y="13.71" width="3.4" height="3.4" rx="0.75" fill="#1652F0"/>
+        <rect x="18.30" y="13.71" width="3.4" height="3.4" rx="0.75" fill="#1652F0"/>
+        <rect x="22.89" y="13.71" width="3.4" height="3.4" rx="0.75" fill="#1652F0"/>
+        <rect x="13.71" y="18.30" width="3.4" height="3.4" rx="0.75" fill="#1652F0"/>
+        <rect x="22.89" y="18.30" width="3.4" height="3.4" rx="0.75" fill="#1652F0"/>
+        <rect x="13.71" y="22.89" width="3.4" height="3.4" rx="0.75" fill="#1652F0"/>
+        <rect x="18.30" y="22.89" width="3.4" height="3.4" rx="0.75" fill="#1652F0"/>
+        <rect x="22.89" y="22.89" width="3.4" height="3.4" rx="0.75" fill="#1652F0"/>
+      </svg>
+      <span class="logo-text">QRkni</span>
+    </a>
+  </div>
+</header>
+
+<div class="page">
+
+  <div class="hero">
+    <div class="hero-badge">Právní dokumenty</div>
+    <h1>Zásady ochrany osobních&nbsp;údajů</h1>
+    <p class="hero-meta">Poslední aktualizace: 15. května 2026</p>
+  </div>
+
+  <div class="card">
+    <p>Tyto zásady popisují, jaké osobní údaje aplikace QRkni zpracovává, za jakým účelem a jaká máte práva. Zpracování probíhá v souladu s Nařízením (EU) 2016/679 (GDPR) a příslušnými národními předpisy.</p>
+
+    <div class="section-label">Správce údajů</div>
+
+    <h2>1. Správce osobních údajů</h2>
+    <p>
+      <strong>Jan Svihálek</strong><br>
+      E-mail: <a href="mailto:jan.svihalek00@gmail.com">jan.svihalek00@gmail.com</a>
+    </p>
+    <p>Nejmenujeme pověřence pro ochranu osobních údajů (DPO), neboť zpracování nepodléhá povinnosti jeho jmenování.</p>
+
+    <div class="section-label">Zpracovávané údaje</div>
+
+    <h2>2. Jaké údaje zpracováváme</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Kategorie</th>
+          <th>Konkrétní údaje</th>
+          <th>Zdroj</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="chip">Účet</span></td>
+          <td>E-mailová adresa, identifikátor přihlášení (Apple ID / Google)</td>
+          <td>Uživatel při registraci</td>
+        </tr>
+        <tr>
+          <td><span class="chip">Platební profily</span></td>
+          <td>IBAN, BIC, jméno příjemce, název profilu</td>
+          <td>Uživatel v aplikaci</td>
+        </tr>
+        <tr>
+          <td><span class="chip">Katalog položek</span></td>
+          <td>Název a cena položek</td>
+          <td>Uživatel v aplikaci</td>
+        </tr>
+        <tr>
+          <td><span class="chip">Zaměstnanci</span></td>
+          <td>Jméno, hashovaný PIN, čas posledního přihlášení</td>
+          <td>Zaměstnavatel v aplikaci</td>
+        </tr>
+        <tr>
+          <td><span class="chip">Transakce</span></td>
+          <td>Čas generování QR kódu, položka, částka</td>
+          <td>Automaticky při použití</td>
+        </tr>
+        <tr>
+          <td><span class="chip">Nastavení</span></td>
+          <td>Preference aplikace (jas, orientace QR, biometrika)</td>
+          <td>Uživatel v nastavení</td>
+        </tr>
+      </tbody>
+    </table>
+    <p>Aplikace <strong>nesbírá</strong> citlivé osobní údaje, neprovádí profilování ani nepoužívá data pro reklamní účely.</p>
+
+    <div class="section-label">Účel a právní základ</div>
+
+    <h2>3. Účel a právní základ zpracování</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Účel</th>
+          <th>Právní základ (GDPR)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Poskytování funkcí aplikace</td>
+          <td>Plnění smlouvy – čl. 6 odst. 1 písm. b)</td>
+        </tr>
+        <tr>
+          <td>Správa předplatného a přístupu</td>
+          <td>Plnění smlouvy – čl. 6 odst. 1 písm. b)</td>
+        </tr>
+        <tr>
+          <td>Zabezpečení a prevence podvodů</td>
+          <td>Oprávněný zájem – čl. 6 odst. 1 písm. f)</td>
+        </tr>
+        <tr>
+          <td>Plnění zákonných povinností</td>
+          <td>Právní povinnost – čl. 6 odst. 1 písm. c)</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="section-label">Sdílení dat</div>
+
+    <h2>4. Příjemci osobních údajů</h2>
+    <p>Data sdílíme pouze s poskytovateli nezbytně nutnými pro provoz aplikace:</p>
+    <ul>
+      <li><strong>Google LLC / Firebase</strong> – autentizace a cloudové úložiště. <a href="https://firebase.google.com/support/privacy" target="_blank">Zásady Firebase →</a></li>
+      <li><strong>RevenueCat, Inc.</strong> – správa předplatného. <a href="https://www.revenuecat.com/privacy" target="_blank">Zásady RevenueCat →</a></li>
+      <li><strong>Apple Inc.</strong> – platby v App Store, přihlášení přes Apple ID. <a href="https://www.apple.com/legal/privacy/cs/" target="_blank">Zásady Apple →</a></li>
+    </ul>
+    <p>Data neprodáváme ani nesdílíme s reklamními sítěmi ani jinými třetími stranami.</p>
+
+    <h2>5. Předávání dat mimo EU</h2>
+    <p>Výše uvedení poskytovatelé mohou zpracovávat data mimo Evropský hospodářský prostor (zejména v USA). Přenos probíhá na základě standardních smluvních doložek schválených Evropskou komisí.</p>
+
+    <div class="section-label">Vaše práva</div>
+
+    <h2>6. Doba uchování dat</h2>
+    <ul>
+      <li><strong>Data účtu a aplikace</strong> – po dobu trvání účtu; smazáním účtu dojde k odstranění dat.</li>
+      <li><strong>Historie transakcí</strong> – max. 3 roky od záznamu.</li>
+      <li><strong>Záznamy o předplatném</strong> – po dobu nezbytnou ke splnění zákonných povinností (typicky 5 let).</li>
+    </ul>
+
+    <h2>7. Vaše práva</h2>
+    <ul>
+      <li><strong>Přístup</strong> – právo zjistit, zda zpracováváme vaše údaje.</li>
+      <li><strong>Oprava</strong> – právo na opravu nepřesných údajů.</li>
+      <li><strong>Výmaz</strong> – právo na smazání údajů („právo být zapomenut").</li>
+      <li><strong>Omezení zpracování</strong> – v zákonem stanovených případech.</li>
+      <li><strong>Přenositelnost</strong> – obdržet údaje ve strojově čitelném formátu.</li>
+      <li><strong>Námitka</strong> – proti zpracování na základě oprávněného zájmu.</li>
+    </ul>
+    <p>Svá práva uplatňujte na <a href="mailto:jan.svihalek00@gmail.com">jan.svihalek00@gmail.com</a>. Odpovíme do 30 dnů.</p>
+
+    <h2>8. Smazání účtu</h2>
+    <p>Účet a všechna s ním spojená data lze smazat v aplikaci (Nastavení → Smazat účet) nebo zasláním žádosti na <a href="mailto:jan.svihalek00@gmail.com">jan.svihalek00@gmail.com</a>.</p>
+
+    <h2>9. Bezpečnost</h2>
+    <p>Data jsou uložena v Google Firebase Firestore, chráněna autentizací. PIN kódy zaměstnanců jsou ukládány výhradně jako hash. Přenášená data jsou šifrována protokolem TLS.</p>
+
+    <div class="section-label">Stížnosti a změny</div>
+
+    <h2>10. Stížnosti</h2>
+    <p>Máte právo podat stížnost u příslušného dozorového úřadu:</p>
+    <ul>
+      <li><strong>Česká republika:</strong> Úřad pro ochranu osobních údajů — <a href="https://www.uoou.cz" target="_blank">www.uoou.cz</a></li>
+      <li><strong>Slovenská republika:</strong> Úrad na ochranu osobných údajov SR — <a href="https://www.dataprotection.gov.sk" target="_blank">www.dataprotection.gov.sk</a></li>
+    </ul>
+
+    <h2>11. Změny zásad</h2>
+    <p>Tyto zásady můžeme kdykoli aktualizovat. O podstatných změnách budeme informovat v aplikaci nebo e-mailem. Datum aktualizace je vždy v záhlaví dokumentu.</p>
+
+    <hr>
+    <p style="font-size:13px; color:var(--label); text-align:center;">
+      &copy; 2026 QRkni &nbsp;·&nbsp;
+      <a href="/terms/" style="color:var(--label);">Podmínky použití</a>
+    </p>
+  </div>
+
+</div>
+</body>
+</html>

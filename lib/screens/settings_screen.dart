@@ -237,7 +237,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 icon: Icons.description_outlined,
                 title: 'Podmínky použití',
                 onTap: () => launchUrl(
-                  Uri.parse('https://qrkni-44ce9.web.app/terms'),
+                  Uri.parse('https://qrkni-44ce9.web.app/terms/'),
                   mode: LaunchMode.externalApplication,
                 ),
               ),
@@ -245,7 +245,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 icon: Icons.privacy_tip_outlined,
                 title: 'Ochrana osobních údajů',
                 onTap: () => launchUrl(
-                  Uri.parse('https://qrkni-44ce9.web.app/privacy'),
+                  Uri.parse('https://qrkni-44ce9.web.app/privacy/'),
                   mode: LaunchMode.externalApplication,
                 ),
               ),
@@ -276,7 +276,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
                 SizedBox(height: 4),
                 Text(
-                  'v2.9.2',
+                  'v2.9.3',
                   style: TextStyle(
                     fontSize: 11,
                     color: AppColors.label,

@@ -258,7 +258,7 @@ class _PaywallScreenState extends State<PaywallScreen> {
             children: [
               _LegalLink(
                 text: 'Podmínky použití',
-                url: 'https://qrkni-44ce9.web.app/terms',
+                url: 'https://qrkni-44ce9.web.app/terms/',
               ),
               const Text(
                 '  ·  ',
@@ -266,7 +266,7 @@ class _PaywallScreenState extends State<PaywallScreen> {
               ),
               _LegalLink(
                 text: 'Ochrana soukromí',
-                url: 'https://qrkni-44ce9.web.app/privacy',
+                url: 'https://qrkni-44ce9.web.app/privacy/',
               ),
             ],
           ),

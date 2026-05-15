@@ -39,6 +39,7 @@ class _AuthScreenState extends State<AuthScreen> {
   bool _hasStoredCredentials = false;
   bool _biometricAvailable = false;
   bool _passwordVisible = false;
+  bool _termsAccepted = false;
   String? _errorMessage;
 
   bool get _isIOS => !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS;
@@ -158,6 +159,10 @@ class _AuthScreenState extends State<AuthScreen> {
       setState(() => _errorMessage = 'Hesla se neshodují.');
       return;
     }
+    if (!_isLogin && !_termsAccepted) {
+      setState(() => _errorMessage = 'Před registrací potvrďte souhlas s podmínkami.');
+      return;
+    }
 
     setState(() {
       _isLoading = true;
@@ -170,7 +175,11 @@ class _AuthScreenState extends State<AuthScreen> {
       if (_isLogin) {
         await authService.signIn(email: email, password: password);
       } else {
-        await authService.signUp(email: email, password: password);
+        await authService.signUp(
+          email: email,
+          password: password,
+          termsAcceptedAt: DateTime.now(),
+        );
       }
       // Po úspěšné autentizaci Firebase okamžitě fire auth-state stream a tahle
       // obrazovka se odmountuje. Uložení creds proto nesmí čekat na mounted —
@@ -606,6 +615,51 @@ class _AuthScreenState extends State<AuthScreen> {
               else
                 const SizedBox(height: 16),
 
+              if (!_isLogin) ...[
+                const SizedBox(height: 16),
+                GestureDetector(
+                  onTap: _isLoading
+                      ? null
+                      : () => setState(() => _termsAccepted = !_termsAccepted),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      SizedBox(
+                        width: 24,
+                        height: 24,
+                        child: Checkbox(
+                          value: _termsAccepted,
+                          onChanged: _isLoading
+                              ? null
+                              : (v) => setState(() => _termsAccepted = v ?? false),
+                          activeColor: _primaryBlue,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(5),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Wrap(
+                          children: [
+                            const Text(
+                              'Souhlasím s ',
+                              style: TextStyle(fontSize: 13, color: _mutedText),
+                            ),
+                            _legalLink('Podmínkami použití', 'https://qrkni-44ce9.web.app/terms/'),
+                            const Text(
+                              ' a ',
+                              style: TextStyle(fontSize: 13, color: _mutedText),
+                            ),
+                            _legalLink('Zásadami ochrany osobních údajů', 'https://qrkni-44ce9.web.app/privacy/'),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+
               if (_errorMessage != null) ...[
                 const SizedBox(height: 8),
                 Container(
@@ -753,6 +807,7 @@ class _AuthScreenState extends State<AuthScreen> {
                               setState(() {
                                 _isLogin = !_isLogin;
                                 _errorMessage = null;
+                                _termsAccepted = false;
                                 _emailController.clear();
                                 _passwordController.clear();
                                 _confirmPasswordController.clear();
@@ -805,9 +860,9 @@ class _AuthScreenState extends State<AuthScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  _legalLink('Podmínky použití', 'https://qrkni-44ce9.web.app/terms'),
+                  _legalLink('Podmínky použití', 'https://qrkni-44ce9.web.app/terms/'),
                   const Text('  ·  ', style: TextStyle(fontSize: 12, color: _labelColor)),
-                  _legalLink('Ochrana soukromí', 'https://qrkni-44ce9.web.app/privacy'),
+                  _legalLink('Ochrana soukromí', 'https://qrkni-44ce9.web.app/privacy/'),
                 ],
               ),
               const SizedBox(height: 8),

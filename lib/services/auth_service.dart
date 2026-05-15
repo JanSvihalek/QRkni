@@ -27,6 +27,7 @@ class AuthService {
   Future<UserCredential> signUp({
     required String email,
     required String password,
+    DateTime? termsAcceptedAt,
   }) async {
     final credential = await _auth.createUserWithEmailAndPassword(
       email: email,
@@ -36,6 +37,7 @@ class AuthService {
       uid: credential.user!.uid,
       email: email,
       isNewUser: true,
+      termsAcceptedAt: termsAcceptedAt,
     );
     return credential;
   }
@@ -81,10 +83,12 @@ class AuthService {
       final userCredential = await _auth.signInWithCredential(credential);
       final user = userCredential.user;
       if (user != null) {
+        final isNew = userCredential.additionalUserInfo?.isNewUser ?? false;
         await _firestoreService.saveUser(
           uid: user.uid,
           email: user.email ?? '',
-          isNewUser: userCredential.additionalUserInfo?.isNewUser ?? false,
+          isNewUser: isNew,
+          termsAcceptedAt: isNew ? DateTime.now() : null,
         );
       }
       return userCredential;
@@ -114,10 +118,12 @@ class AuthService {
       final userCredential = await _auth.signInWithCredential(oauthCredential);
       final user = userCredential.user;
       if (user != null) {
+        final isNew = userCredential.additionalUserInfo?.isNewUser ?? false;
         await _firestoreService.saveUser(
           uid: user.uid,
           email: user.email ?? appleCredential.email ?? '',
-          isNewUser: userCredential.additionalUserInfo?.isNewUser ?? false,
+          isNewUser: isNew,
+          termsAcceptedAt: isNew ? DateTime.now() : null,
         );
       }
       return userCredential;

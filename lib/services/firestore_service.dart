@@ -33,6 +33,7 @@ class FirestoreService {
     required String uid,
     required String email,
     bool isNewUser = false,
+    DateTime? termsAcceptedAt,
   }) async {
     final data = <String, dynamic>{
       'email': email,
@@ -40,6 +41,10 @@ class FirestoreService {
     };
     if (isNewUser) {
       data['createdAt'] = FieldValue.serverTimestamp();
+    }
+    if (termsAcceptedAt != null) {
+      data['termsAcceptedAt'] = Timestamp.fromDate(termsAcceptedAt);
+      data['termsVersion'] = '2026-05-15';
     }
     await _userRef(uid).set(data, SetOptions(merge: true));
   }
