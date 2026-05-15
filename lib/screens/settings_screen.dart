@@ -75,6 +75,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         reason: 'Potvrďte aktivaci biometriky',
       );
       if (!ok) return;
+      await CredentialStorage().setBiometricEnabled(true);
     } else {
       await CredentialStorage().clear();
     }
@@ -276,7 +277,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
                 SizedBox(height: 4),
                 Text(
-                  'v2.9.3',
+                  'v2.9.4',
                   style: TextStyle(
                     fontSize: 11,
                     color: AppColors.label,

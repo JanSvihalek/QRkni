@@ -6,6 +6,7 @@ class CredentialStorage {
   static const _emailKey = 'qrkni_email';
   static const _passwordKey = 'qrkni_password';
   static const _authMethodKey = 'qrkni_auth_method';
+  static const _biometricEnabledKey = 'qrkni_biometric_enabled';
 
   final _storage = const FlutterSecureStorage(
     iOptions: IOSOptions(
@@ -48,10 +49,22 @@ class CredentialStorage {
     return (email: email, password: password);
   }
 
+  Future<bool> isBiometricEnabled() async =>
+      await _storage.read(key: _biometricEnabledKey) == 'true';
+
+  Future<void> setBiometricEnabled(bool enabled) async {
+    if (enabled) {
+      await _storage.write(key: _biometricEnabledKey, value: 'true');
+    } else {
+      await _storage.delete(key: _biometricEnabledKey);
+    }
+  }
+
   Future<void> clear() async {
     await _storage.delete(key: _emailKey);
     await _storage.delete(key: _passwordKey);
     await _storage.delete(key: _authMethodKey);
+    await _storage.delete(key: _biometricEnabledKey);
   }
 
   /// True pokud je uloženo cokoliv, čím lze biometricky obnovit přihlášení

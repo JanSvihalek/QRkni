@@ -38,6 +38,7 @@ class _AuthScreenState extends State<AuthScreen> {
   bool _isLoading = false;
   bool _hasStoredCredentials = false;
   bool _biometricAvailable = false;
+  bool _biometricEnabledLocally = false;
   bool _passwordVisible = false;
   bool _termsAccepted = false;
   String? _errorMessage;
@@ -61,12 +62,14 @@ class _AuthScreenState extends State<AuthScreen> {
   Future<void> _initBiometric() async {
     final available = await _biometric.isAvailable();
     final hasCreds = await _credentials.hasCredentials();
+    final biometricEnabled = await _credentials.isBiometricEnabled();
     if (!mounted) return;
     setState(() {
       _biometricAvailable = available;
       _hasStoredCredentials = hasCreds;
+      _biometricEnabledLocally = biometricEnabled;
     });
-    if (available && hasCreds && _isLogin) {
+    if (available && hasCreds && biometricEnabled && _isLogin) {
       _tryBiometricLogin();
     }
   }
@@ -503,7 +506,7 @@ class _AuthScreenState extends State<AuthScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final showFaceId = _biometricAvailable && _isLogin;
+    final showFaceId = _biometricAvailable && _biometricEnabledLocally && _isLogin;
 
     return Scaffold(
       backgroundColor: Colors.white,
