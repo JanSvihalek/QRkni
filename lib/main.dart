@@ -238,7 +238,8 @@ class _SubscriptionGateState extends State<_SubscriptionGate> {
     if (_loading) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
-    if (_status.hasAccess) {
+    final email = FirebaseAuth.instance.currentUser?.email;
+    if (_status.hasAccess || SubscriptionService.isDeveloper(email)) {
       return MainScreen(userId: widget.userId);
     }
     return const PaywallScreen();

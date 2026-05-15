@@ -7,6 +7,12 @@ class SubscriptionService {
   static const _iosApiKey = 'appl_ExrHqdcMLwCdbVgslgBfABoATwN';
   static const _androidApiKey = 'goog_YOUR_ANDROID_KEY_HERE';
 
+  // E-maily vývojářů – mají přístup bez předplatného
+  static const _developerEmails = {'jan.svihalek00@gmail.com'};
+
+  static bool isDeveloper(String? email) =>
+      email != null && _developerEmails.contains(email);
+
   // Entitlement identifikátory v RevenueCat dashboardu
   static const String entitlementBasic = 'basic';
   static const String entitlementPro = 'pro';
