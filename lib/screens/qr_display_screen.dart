@@ -39,6 +39,13 @@ class _QrDisplayScreenState extends State<QrDisplayScreen> {
   bool _flipQr = false;
   bool _awaitingConfirmation = false;
   bool _confirmed = false;
+  bool _popped = false;
+
+  void _safePop(bool result) {
+    if (_popped || !mounted) return;
+    _popped = true;
+    Navigator.pop(context, result);
+  }
 
   @override
   void initState() {
@@ -100,10 +107,10 @@ class _QrDisplayScreenState extends State<QrDisplayScreen> {
           createdBy: widget.createdBy,
         ),
       );
-      if (mounted) Navigator.pop(context, true);
+      _safePop(true);
     } catch (e) {
       debugPrint('addTransaction error: $e');
-      if (mounted) {
+      if (mounted && !_popped) {
         setState(() { _saving = false; _confirmed = false; });
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Chyba: $e')));
       }
@@ -173,7 +180,7 @@ class _QrDisplayScreenState extends State<QrDisplayScreen> {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.close),
-          onPressed: () => Navigator.pop(context, false),
+          onPressed: (_confirmed || _saving) ? null : () => _safePop(false),
         ),
         title: Text(
           widget.profile.name,
