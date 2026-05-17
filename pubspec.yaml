@@ -16,7 +16,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 2.9.8
+version: 2.9.9
 
 environment:
   sdk: ^3.11.5
@@ -106,19 +106,19 @@ flutter_launcher_icons:
   android: "launcher_icon"
   ios: true
   remove_alpha_ios: true
-  image_path: "assets/icons/qrkni-launcher-source-1024.png"
-  adaptive_icon_background: "#1652F0"
-  adaptive_icon_foreground: "assets/icons/qrkni-icon-1024.png"
+  image_path: "assets/icons/qrkni-white-1024.png"
+  adaptive_icon_background: "#0D1B2A"
+  adaptive_icon_foreground: "assets/icons/qrkni-white-transparent-1024.png"
   web:
     generate: true
-    image_path: "assets/icons/qrkni-launcher-source-1024.png"
-    background_color: "#1652F0"
-    theme_color: "#1652F0"
+    image_path: "assets/icons/qrkni-white-1024.png"
+    background_color: "#0D1B2A"
+    theme_color: "#0D1B2A"
   windows:
     generate: true
-    image_path: "assets/icons/qrkni-launcher-source-1024.png"
+    image_path: "assets/icons/qrkni-white-1024.png"
     icon_size: 256
   macos:
     generate: true
-    image_path: "assets/icons/qrkni-launcher-source-1024.png"
+    image_path: "assets/icons/qrkni-white-1024.png"
 
