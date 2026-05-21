@@ -6,7 +6,9 @@ import '../models/payment_profile.dart';
 import '../models/payment_transaction.dart';
 import '../services/credential_storage.dart';
 import '../services/firestore_service.dart';
+import '../services/subscription_service.dart';
 import 'items_screen.dart';
+import 'paywall_screen.dart';
 import 'profiles_screen.dart';
 import 'qr_display_screen.dart';
 
@@ -139,6 +141,56 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   double? get _finalAmount => _hasCart ? _cartTotal : _manualAmount;
+
+  Future<void> _generateQr(PaymentProfile selected, double amount) async {
+    final status = await SubscriptionService.getStatus();
+    final email = FirebaseAuth.instance.currentUser?.email;
+    if (!status.hasAccess && !SubscriptionService.isDeveloper(email)) {
+      final count =
+          await _firestoreService.getMonthlyQrCount(widget.userId);
+      if (count >= status.monthlyQrLimit) {
+        if (!mounted) return;
+        await Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const PaywallScreen()),
+        );
+        return;
+      }
+      await _firestoreService.incrementQrCount(widget.userId);
+    }
+    if (!mounted) return;
+    final createdBy = await _resolveCreatedBy();
+    if (!mounted) return;
+    final paid = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => QrDisplayScreen(
+          userId: widget.userId,
+          profile: selected,
+          amount: amount,
+          items: _cart
+              .map((e) => TransactionItem(
+                    name: e.item.name,
+                    price: e.item.price,
+                    quantity: e.quantity,
+                  ))
+              .toList(),
+          customMessage: _customMsg,
+          customVariableSymbol: _customVs,
+          customConstantSymbol: _customKs,
+          customSpecificSymbol: _customSs,
+          createdBy: createdBy,
+        ),
+      ),
+    );
+    if (paid == true) {
+      _clearCart();
+      setState(() {
+        _input = '0';
+        _resetCustomFields();
+      });
+    }
+  }
 
   Future<String?> _resolveCreatedBy() async {
     if (widget.isWorkerMode) {
@@ -693,39 +745,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       const SizedBox(height: 8),
                       FilledButton(
                         onPressed: selected != null && amount != null
-                            ? () async {
-                                final createdBy = await _resolveCreatedBy();
-                                if (!context.mounted) return;
-                                final paid = await Navigator.push<bool>(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) => QrDisplayScreen(
-                                      userId: widget.userId,
-                                      profile: selected!,
-                                      amount: amount,
-                                      items: _cart
-                                          .map((e) => TransactionItem(
-                                                name: e.item.name,
-                                                price: e.item.price,
-                                                quantity: e.quantity,
-                                              ))
-                                          .toList(),
-                                      customMessage: _customMsg,
-                                      customVariableSymbol: _customVs,
-                                      customConstantSymbol: _customKs,
-                                      customSpecificSymbol: _customSs,
-                                      createdBy: createdBy,
-                                    ),
-                                  ),
-                                );
-                                if (paid == true) {
-                                  _clearCart();
-                                  setState(() {
-                                    _input = '0';
-                                    _resetCustomFields();
-                                  });
-                                }
-                              }
+                            ? () => _generateQr(selected!, amount)
                             : null,
                         style: FilledButton.styleFrom(
                           minimumSize: const Size(double.infinity, 56),

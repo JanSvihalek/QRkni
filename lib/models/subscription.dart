@@ -17,8 +17,11 @@ class SubscriptionStatus {
   // -1 = neomezeno
   int get workerLimit => isPro ? -1 : 3;
 
+  // Měsíční limit QR kódů; -1 = neomezeno
+  int get monthlyQrLimit => hasAccess ? -1 : 10;
+
   String get displayName => switch (plan) {
-        SubscriptionPlan.none => 'Bez předplatného',
+        SubscriptionPlan.none => 'Free',
         SubscriptionPlan.basic => 'Basic',
         SubscriptionPlan.pro => 'Pro',
       };

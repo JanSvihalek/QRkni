@@ -108,6 +108,34 @@ class FirestoreService {
     await _transactionsRef(uid).add(transaction.toFirestore());
   }
 
+  // ── Měsíční počet QR kódů (free tier) ───────────────────────────────────
+
+  String _monthKey() {
+    final now = DateTime.now();
+    return '${now.year}-${now.month.toString().padLeft(2, '0')}';
+  }
+
+  Future<int> getMonthlyQrCount(String uid) async {
+    final doc = await _userRef(uid).get();
+    if (!doc.exists) return 0;
+    final data = doc.data()!;
+    if ((data['qr_month'] as String?) != _monthKey()) return 0;
+    return (data['qr_count'] as int?) ?? 0;
+  }
+
+  Future<void> incrementQrCount(String uid) async {
+    final month = _monthKey();
+    await _db.runTransaction((tx) async {
+      final ref = _userRef(uid);
+      final snap = await tx.get(ref);
+      final data = snap.data() ?? {};
+      final storedMonth = data['qr_month'] as String? ?? '';
+      final current =
+          storedMonth == month ? (data['qr_count'] as int? ?? 0) : 0;
+      tx.update(ref, {'qr_month': month, 'qr_count': current + 1});
+    });
+  }
+
   // ── Nastavení aplikace ───────────────────────────────────────────────────
 
   Future<Map<String, dynamic>> loadSettings(String uid) async {

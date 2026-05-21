@@ -24,7 +24,6 @@ class _PaywallScreenState extends State<PaywallScreen> {
   Offerings? _offerings;
   bool _loading = true;
   bool _purchasing = false;
-  bool _trialEligible = false;
 
   @override
   void initState() {
@@ -38,27 +37,9 @@ class _PaywallScreenState extends State<PaywallScreen> {
     try {
       offerings = await Purchases.getOfferings();
     } catch (_) {}
-    bool trialEligible = false;
-    final current = offerings?.current;
-    if (current != null) {
-      final productIds = current.availablePackages
-          .map((p) => p.storeProduct.identifier)
-          .toList();
-      if (productIds.isNotEmpty) {
-        try {
-          final map = await Purchases
-              .checkTrialOrIntroductoryPriceEligibility(productIds);
-          trialEligible = map.values.any(
-            (e) => e.status ==
-                IntroEligibilityStatus.introEligibilityStatusEligible,
-          );
-        } catch (_) {}
-      }
-    }
     if (mounted) {
       setState(() {
         _offerings = offerings;
-        _trialEligible = trialEligible;
         _loading = false;
       });
     }
@@ -172,11 +153,9 @@ class _PaywallScreenState extends State<PaywallScreen> {
                   ),
                 ),
                 const SizedBox(height: 6),
-                Text(
-                  _trialEligible
-                      ? 'Vyzkoušejte 30 dní zdarma'
-                      : 'Aktivujte si předplatné',
-                  style: const TextStyle(fontSize: 15, color: AppColors.muted),
+                const Text(
+                  'Aktivujte si předplatné',
+                  style: TextStyle(fontSize: 15, color: AppColors.muted),
                 ),
               ],
             ),
@@ -224,9 +203,9 @@ class _PaywallScreenState extends State<PaywallScreen> {
                       strokeWidth: 2.5,
                     ),
                   )
-                : Text(
-                    _trialEligible ? 'Vyzkoušet 30 dní zdarma' : 'Předplatit',
-                    style: const TextStyle(
+                : const Text(
+                    'Předplatit',
+                    style: TextStyle(
                       fontSize: 17,
                       fontWeight: FontWeight.w600,
                     ),
